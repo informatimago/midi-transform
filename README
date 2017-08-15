@@ -36,9 +36,9 @@ Usage
 Example
 --------------------------------
 
-    $ ./midi-transform 
+    $ ./midi-transform
         Selected group 0
-    > 
+    >
     CC: UPDATE PARAMETER VCF-VELOCITY-SENSITIVITY TO 4
     CC: UPDATE PARAMETER VCF-VELOCITY-SENSITIVITY TO 4
     CC: UPDATE PARAMETER VCF-VELOCITY-SENSITIVITY TO 4
@@ -59,12 +59,12 @@ Example
     CC: UPDATE PARAMETER DELAY-EFFECT-LEVEL TO 4
     CC: UPDATE PARAMETER DELAY-EFFECT-LEVEL TO 5
     > help
-    Help: 
+    Help:
       help     Displays this help.
       quit     Stops this midi application.
     > quit
 
-    $ 
+    $
 
 
 Obtaining the sources
@@ -84,7 +84,7 @@ Running in ccl:
     > (ccl:chdir "src/midi-transform/")
     > (load "loader")
     > (com.informatimago.midi.transform:initialize)
-    > (com.informatimago.midi.transform:run 
+    > (com.informatimago.midi.transform:run
               :dw-8000-device-name "Korg DW-8000"
               :dw-8000-channel 10
               :controller-device-name "VI61"
@@ -107,6 +107,18 @@ Compiling the binary program
     $ make help
     $ make
     $ ./midi-transform --help
+
+
+The midi-transform program can be installed in /usr/local/bin with:
+
+    $ make install
+
+or in some other directory by specifying the PREFIX:
+
+    $ make PREFIX=/opt/local install
+
+will install /opt/local/bin/midi-transform.
+
 
 
 License
@@ -132,4 +144,3 @@ It's distribued under the GNU AFFERO GENERAL PUBLIC LICENSE, Version 3.
 --
 __Pascal Bourguignon__
 Tue Aug 15 02:22:37 CEST 2017
-

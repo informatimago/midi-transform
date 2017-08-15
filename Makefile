@@ -5,6 +5,8 @@
 
 ## Configurable:
 
+PREFIX=/usr/local
+
 #CCL_EXE=/data/languages/ccl/bin/ccl
 CCL_EXE=ccl-1.11
 CCL=$(CCL_EXE) --no-init --batch
@@ -46,5 +48,10 @@ help::
 	@printf "$(HELP_FORMAT)" "clean" "Delete the midi-transform executable."
 clean:
 	-@rm -rf midi-transform
+
+help::
+	@printf "$(HELP_FORMAT)" "install" "Installs the midi-transform executable in $(PREFIX)/bin."
+install::midi-transform
+	@install -v -m 755 midi-transform "$(PREFIX)/bin"
 
 #### THE END ####
