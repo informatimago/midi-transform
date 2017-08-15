@@ -8,25 +8,25 @@
 ;;;;
 ;;;;    Transforms MIDI CC into DW-8000 parameter-changes.
 ;;;;
-;;;;    
+;;;;
 ;;;;    Main Features:
-;;;;    
+;;;;
 ;;;;    - Receives MIDI messages from the controller, and
-;;;;    
+;;;;
 ;;;;    - for normal MIDI messages (note, etc), forwards them to the DW-8000 /
 ;;;;      EX-8000 synthesizer (updating the channel if needed).
-;;;;    
+;;;;
 ;;;;    - CC messages are transformed into parameter-change sysex (updating
 ;;;;      the channel if needed).
-;;;;    
-;;;;    
+;;;;
+;;;;
 ;;;;    Secondary Features (not implemented yet):
-;;;;    
+;;;;
 ;;;;    - configure the CC mapping interactively:
 ;;;;       + select in the user interface a DW-8000 parameter.
 ;;;;       + receive a CC message from the controller.
 ;;;;       + establish the mappin between that CC message and the parameter.
-;;;;    
+;;;;
 ;;;;    - load and save programs.
 ;;;;
 ;;;;    - load and save whole program banks.
@@ -394,9 +394,9 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
 ;;;
 
 (defun default-dw-8000-map-cc ()
-  
+
   ;;  (parameter-no-memory 63)             ; nope
-  ;; 
+  ;;
   ;;  20        (osc1-octave 3)                    (osc2-octave 3)                 (aftertouch-vcf 3)
   ;;  21        (osc1-waveform 15)                 (osc2-waveform 15)              (aftertouch-vca 3)
   ;;  22        (osc1-level 31)                    (osc2-level 31)                 (auto-bend-time 31)
@@ -413,11 +413,11 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
   ;;  33        (vcf-sustain 31)                   (vca-sustain 31)                (delay-frequency 31)
   ;;  34        (vcf-release 31)                   (vca-release 31)                (delay-intensity 31)
   ;;  35        (vcf-velocity-sensitivity 7)       (vca-velocity-sensitivity 7)    (delay-effect-level 15)
-  ;; 
+  ;;
   ;;                                       ; select           -> 3 buttons                   ; momentary 63 79 95
   ;;  (assign-mode 3) ;     poly1 poly2 unison1 unison2 -> 2 button (poly/unison 1/2)  ; toggle 62 78
   ;;  (auto-bend-select 3) ; off osc1 osc2 osc1+osc2    -> 2 button (osc1 osc2)        ; toggle 61 77
-  ;; 
+  ;;
   ;;  (auto-bend-mode 1) ;               up down        -> 1 button                      ; toggle 60
   ;;  (polarity 1) ;                     /\  \/         -> 1 button                      ; toggle 59
   ;;  (bend-vcf 1) ;                     off on         -> 1 button                      ; toggle 58
@@ -428,7 +428,7 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
               ((momentary 95) 0)
               ((momentary 79) 1)
               ((momentary 63) 2))
-                      
+
        (group
         (map-cc (osc1-octave              0 3)     ((continuous 20) 0 127))
         (map-cc (osc1-waveform            0 15)    ((continuous 21) 0 127))
@@ -482,7 +482,7 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
         (map-cc (delay-frequency          0 31)    ((continuous 33) 0 127))
         (map-cc (delay-intensity          0 31)    ((continuous 34) 0 127))
         (map-cc (delay-effect-level       0 15)    ((continuous 35) 0 127))))
-                    
+
      (map-cc assign-mode                         (combination ((toggle 78) 2) ((toggle 62) 1)))
      (map-cc auto-bend-select                    (combination ((toggle 77) 1) ((toggle 61) 2)))
      (map-cc auto-bend-mode                      ((toggle 60) 1))

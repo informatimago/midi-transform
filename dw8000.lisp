@@ -5,9 +5,9 @@
 ;;;;SYSTEM:             Common-Lisp
 ;;;;USER-INTERFACE:     NONE
 ;;;;DESCRIPTION
-;;;;    
+;;;;
 ;;;;    Defines sysex messages of the Korg DW-8000 / EX-8000.
-;;;;    
+;;;;
 ;;;;AUTHORS
 ;;;;    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
 ;;;;MODIFICATIONS
@@ -15,19 +15,19 @@
 ;;;;BUGS
 ;;;;LEGAL
 ;;;;    AGPL3
-;;;;    
+;;;;
 ;;;;    Copyright Pascal J. Bourguignon 2017 - 2017
-;;;;    
+;;;;
 ;;;;    This program is free software: you can redistribute it and/or modify
 ;;;;    it under the terms of the GNU Affero General Public License as published by
 ;;;;    the Free Software Foundation, either version 3 of the License, or
 ;;;;    (at your option) any later version.
-;;;;    
+;;;;
 ;;;;    This program is distributed in the hope that it will be useful,
 ;;;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;;;    GNU Affero General Public License for more details.
-;;;;    
+;;;;
 ;;;;    You should have received a copy of the GNU Affero General Public License
 ;;;;    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;;**************************************************************************
@@ -138,7 +138,7 @@
  (defconstant +korg-id+                      #x42)
 
  (defconstant +korg-dw-8000+                 #x03)
- (defconstant +korg-ex-8000+                 #x03)      
+ (defconstant +korg-ex-8000+                 #x03)
 
  (defconstant +device-id+                    3)
 
@@ -146,7 +146,7 @@
  (defconstant +device-id-request+            #x40)
 
  (defconstant +data-save-request+            #x10)
- (defconstant +data-dump+                    #x40) 
+ (defconstant +data-dump+                    #x40)
  (defconstant +write-request+                #x11)
  (defconstant +write-completed-status+       #x21)
  (defconstant +write-error-status+           #x22)
@@ -343,7 +343,7 @@
 
 (define-parameter osc1-octave                0 (0 3)     ("16'" "8'" "4'" inhibit))
 (define-parameter osc1-waveform              1 (0 15)
-  (brass-string 
+  (brass-string
    clarinet
    acoustic-piano
    electric-piano
@@ -366,7 +366,7 @@
 (define-parameter auto-bend-intensity        6 (0 31))
 (define-parameter osc2-octave                7 (0 3)     ("16'" "8'" "4'" inhibit))
 (define-parameter osc2-waveform              8 (0 15)
-  (brass-string 
+  (brass-string
    clarinet
    acoustic-piano
    electric-piano
@@ -387,7 +387,7 @@
 (define-parameter osc2-detune               11 (0 7)    (0 1 2 3 4 5 6 inhibit))
 (define-parameter noise-level               12 (0 31))
 
-(define-parameter assign-mode               13 (0 3)    (poly1 poly2 unison1 unison2)) 
+(define-parameter assign-mode               13 (0 3)    (poly1 poly2 unison1 unison2))
 (define-parameter parameter-no-memory       14 (0 63))
 
 (define-parameter cutoff                    15 (0 63))

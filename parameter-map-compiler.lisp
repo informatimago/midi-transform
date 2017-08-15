@@ -5,9 +5,9 @@
 ;;;;SYSTEM:             Common-Lisp
 ;;;;USER-INTERFACE:     NONE
 ;;;;DESCRIPTION
-;;;;    
+;;;;
 ;;;;    Compiles a cc-parameter map.
-;;;;    
+;;;;
 ;;;;AUTHORS
 ;;;;    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
 ;;;;MODIFICATIONS
@@ -15,19 +15,19 @@
 ;;;;BUGS
 ;;;;LEGAL
 ;;;;    AGPL3
-;;;;    
+;;;;
 ;;;;    Copyright Pascal J. Bourguignon 2017 - 2017
-;;;;    
+;;;;
 ;;;;    This program is free software: you can redistribute it and/or modify
 ;;;;    it under the terms of the GNU Affero General Public License as published by
 ;;;;    the Free Software Foundation, either version 3 of the License, or
 ;;;;    (at your option) any later version.
-;;;;    
+;;;;
 ;;;;    This program is distributed in the hope that it will be useful,
 ;;;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;;;    GNU Affero General Public License for more details.
-;;;;    
+;;;;
 ;;;;    You should have received a copy of the GNU Affero General Public License
 ;;;;    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;;**************************************************************************
@@ -35,7 +35,7 @@
 (defpackage "COM.INFORMATIMAGO.MIDI.PARAMETER-MAP-COMPILER"
   (:use "COMMON-LISP"
         "COM.INFORMATIMAGO.MIDI.PARAMETER")
-  (:export "SELECT" "GROUP" "MAP-CC" 
+  (:export "SELECT" "GROUP" "MAP-CC"
            "COMBINATION" "SELECTION"
            "CONTINUOUS" "MOMENTARY"
            "TOGGLE"
@@ -135,7 +135,7 @@ actions for map-cc:
 (defgeneric dispatch (object cc value))
 
 ;;; ----------------------------------------
-;;; 
+;;;
 (defclass input ()
   ((input-value :initarg :input-value :reader cell-input)))
 
@@ -144,7 +144,7 @@ actions for map-cc:
 
 
 ;;; ----------------------------------------
-;;; 
+;;;
 (defclass output ()
   ((output-value :initarg :output-value :initform 0 :reader cell-output)))
 
@@ -171,7 +171,7 @@ actions for map-cc:
 
 
 ;;; ----------------------------------------
-;;; 
+;;;
 (defclass argument (input)
   ((parameter  :reader argument-parameter :initarg :parameter)))
 
@@ -192,7 +192,7 @@ actions for map-cc:
 
 
 ;;; ----------------------------------------
-;;; 
+;;;
 (defclass cell (output)
   ((downstream-cells :accessor downstream-cells
                      :initform '() :initarg :downstream-cells)))
@@ -207,7 +207,7 @@ actions for map-cc:
 
 
 ;;; ----------------------------------------
-;;; 
+;;;
 (defclass controller (cell)
   ((code      :initarg :code      :reader controller-code)))
 
@@ -219,7 +219,7 @@ actions for map-cc:
 
 
 ;;; ----------------------------------------
-;;; 
+;;;
 (defclass combination (cell)
   ((operator :initform '+  :initarg :operator :reader combination-operator)
    (cells    :initform '() :initarg :cells    :reader combination-cells
@@ -244,7 +244,7 @@ actions for map-cc:
 
 
 ;;; ----------------------------------------
-;;; 
+;;;
 (defclass selection (cell)
   ((selectors :initarg :selectors :initform '() :reader selection-selectors)))
 
@@ -267,7 +267,7 @@ actions for map-cc:
 
 
 ;;; ----------------------------------------
-;;; 
+;;;
 (defclass continuous-controller (controller)
   ((cc-min :initarg :cc-min :reader controller-min)
    (cc-max :initarg :cc-max :reader controller-max)
@@ -304,7 +304,7 @@ actions for map-cc:
 
 
 ;;; ----------------------------------------
-;;; 
+;;;
 (defclass toggle-controller (controller)
   ((on  :initarg :on  :reader controller-parameter-on)
    (off :initarg :off :reader controller-parameter-off :initform 0)))
@@ -328,7 +328,7 @@ actions for map-cc:
 
 
 ;;; ----------------------------------------
-;;; 
+;;;
 (defclass momentary-controller (controller)
   ((on  :initarg :on  :reader controller-parameter-on)))
 
@@ -417,7 +417,7 @@ group), one of them being active, along with the select controller.
 
 
 ;;; ----------------------------------------
-;;; 
+;;;
 (defclass map-cc ()
   ((table   :initform (make-hash-table)
             :reader map-cc-table
@@ -427,7 +427,7 @@ group), one of them being active, along with the select controller.
             :documentation "A list of SELECT instances.")))
 
 ;;; ----------------------------------------
-;;; 
+;;;
 (defclass select (input)
   ((selector       :initarg :selector
                    :reader select-selector)
