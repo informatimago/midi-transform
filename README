@@ -1,0 +1,64 @@
+
+midi-transform
+================
+
+
+This is a little CoreMIDI MacOSX command-line program whose purpose is
+to convert some MIDI controller Controller Change MIDI messages into
+SysEx parameter change MIDI message for some synthesizer.
+Accessorily, it also forwards all the other MIDI messages from the
+controller to the synthesizer.
+
+Currently only the SysEx Parameter list for the Korg DW-8000/EX-8000
+is implemented, with a default mapping for the Alesis VI61 MIDI
+controller.
+
+    $ ./midi-transform  --help
+
+
+    midi-transform usage:
+
+        midi-transform [-h|--help] [-l|--list-devices]\
+                       [-dd|--dw-8000-device-name|-ed|--ex-8000-device-name  name]\
+                       [-dc|--dw-8000-channel|-ec|--ex-8000-channel  midi-channel]\
+                       [-cd|--controller-device-name  name]\
+                       [-cc|--controller-channel  midi-channel]
+
+      names can be found with --list-devices,
+      midi-channel go from 1 to 16.
+      Defaults are: -dd "Korg DW-8000" -dc 11 -cd "VI61" -cc 11
+
+
+    $ ./midi-transform 
+        Selected group 0
+    > 
+    CC: UPDATE PARAMETER VCF-VELOCITY-SENSITIVITY TO 4
+    CC: UPDATE PARAMETER VCF-VELOCITY-SENSITIVITY TO 4
+    CC: UPDATE PARAMETER VCF-VELOCITY-SENSITIVITY TO 4
+    CC: UPDATE PARAMETER VCF-VELOCITY-SENSITIVITY TO 4
+    CC: UPDATE PARAMETER VCF-VELOCITY-SENSITIVITY TO 4
+    CC: UPDATE PARAMETER VCF-VELOCITY-SENSITIVITY TO 4
+        Selected group 1
+    CC: UPDATE PARAMETER VCA-VELOCITY-SENSITIVITY TO 3
+    CC: UPDATE PARAMETER VCA-VELOCITY-SENSITIVITY TO 2
+        Selected group 0
+    CC: UPDATE PARAMETER VCF-VELOCITY-SENSITIVITY TO 2
+    CC: UPDATE PARAMETER VCF-VELOCITY-SENSITIVITY TO 1
+        Selected group 2
+    CC: UPDATE PARAMETER MG-OSC TO 22
+    CC: UPDATE PARAMETER MG-OSC TO 23
+    CC: UPDATE PARAMETER DELAY-EFFECT-LEVEL TO 2
+    CC: UPDATE PARAMETER DELAY-EFFECT-LEVEL TO 3
+    CC: UPDATE PARAMETER DELAY-EFFECT-LEVEL TO 4
+    CC: UPDATE PARAMETER DELAY-EFFECT-LEVEL TO 5
+    > help
+    Help: 
+      help     Displays this help.
+      quit     Stops this midi application.
+    > quit
+
+    $ 
+
+--
+__Pascal Bourguignon__
+Tue Aug 15 02:22:37 CEST 2017
