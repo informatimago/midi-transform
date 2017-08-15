@@ -1,4 +1,3 @@
-
 midi-transform
 ================================
 
@@ -13,6 +12,7 @@ Currently only the SysEx Parameter list for the Korg DW-8000/EX-8000
 is implemented, with a default mapping for the Alesis VI61 MIDI
 controller.
 
+Demo video at: https://www.youtube.com/watch?v=zUB6otw7lic
 
 Usage
 --------------------------------
