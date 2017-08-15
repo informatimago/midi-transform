@@ -1,6 +1,6 @@
 
 midi-transform
-================
+================================
 
 
 This is a little CoreMIDI MacOSX command-line program whose purpose is
@@ -12,6 +12,10 @@ controller to the synthesizer.
 Currently only the SysEx Parameter list for the Korg DW-8000/EX-8000
 is implemented, with a default mapping for the Alesis VI61 MIDI
 controller.
+
+
+Usage
+--------------------------------
 
     $ ./midi-transform  --help
 
@@ -28,6 +32,9 @@ controller.
       midi-channel go from 1 to 16.
       Defaults are: -dd "Korg DW-8000" -dc 11 -cd "VI61" -cc 11
 
+
+Example
+--------------------------------
 
     $ ./midi-transform 
         Selected group 0
@@ -59,6 +66,70 @@ controller.
 
     $ 
 
+
+Obtaining the sources
+--------------------------------
+
+1- create a directory where to clone it, since dependencies will be
+   cloned in brother directories.
+
+    $ mkdir src ; cd src
+
+2- clone the sources:
+
+    $ git clone git@framagit.org:pjb/midi-transform.git
+
+Running in ccl:
+
+    > (ccl:chdir "src/midi-transform/")
+    > (load "loader")
+    > (com.informatimago.midi.transform:initialize)
+    > (com.informatimago.midi.transform:run 
+              :dw-8000-device-name "Korg DW-8000"
+              :dw-8000-channel 10
+              :controller-device-name "VI61"
+              :controller-channel 10)
+
+Internally, MIDI channels numbers go from 0 to 15, (they're converted
+while parsing the the command line arguments).  So use 10 to indicate
+MIDI Channel 11, 0 for MIDI Channel 1.  The above values are default
+parameters, so you can run it with just:
+
+    > (com.informatimago.midi.transform:run)
+
+if you configure your devices on the channel 10 and name them like
+this in the "Audio MIDI Setup" application.
+
+
+Compiling the binary program
+--------------------------------
+
+    $ make help
+    $ make
+    $ ./midi-transform --help
+
+
+License
+--------------------------------
+
+It's distribued under the GNU AFFERO GENERAL PUBLIC LICENSE, Version 3.
+
+    Copyright Pascal J. Bourguignon 2017 - 2017
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 --
 __Pascal Bourguignon__
 Tue Aug 15 02:22:37 CEST 2017
+
