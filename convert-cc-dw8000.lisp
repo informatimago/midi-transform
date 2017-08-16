@@ -368,11 +368,17 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
   (:method ((self convert-cc-dw8000-application) refcon)
     (= refcon (dw-8000-refcon self))))
 
+(defun selected-group (application)
+  (let ((select (first (com.informatimago.midi.parameter-map-compiler::map-cc-selects
+                        (cc-map application)))))
+    (position (com.informatimago.midi.parameter-map-compiler::select-selected-group select)
+              (com.informatimago.midi.parameter-map-compiler::select-groups select))))
 
 (defmethod update-parameter ((parameter dw8000-parameter) (value integer))
   (unless (<= (parameter-min parameter) value (parameter-max parameter))
     (error "Invalid parameter value ~S for parameter ~S" value parameter))
-  (format t "~&CC: UPDATE PARAMETER ~A TO ~A~%" (parameter-name parameter) value)
+  (format t "~&CC: (PAGE ~A) UPDATE PARAMETER ~A TO ~A~%"
+          (selected-group *midi-application*) (parameter-name parameter) value)
   (send-sysex (sysex-request
                (dw-8000-destination *midi-application*)
                (parameter-change-request (dw-8000-channel *midi-application*)
@@ -380,7 +386,6 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
                                          value)
                nil nil))
   value)
-
 
 (defgeneric map-controller-to-sysex-request (application controller value)
   (:method ((self convert-cc-dw8000-application) controller value)
