@@ -45,9 +45,13 @@
                "com.informatimago.macosx.coremidi.midi"
                "com.informatimago.common-lisp.cesarum")
   :components ((:file "synthesizer")
+               (:file "midi-application")
                (:file "parameter-map-compiler" :depends-on ("synthesizer"))
-               (:file "dw8000"                 :depends-on ("synthesizer"))
-               (:file "convert-cc-dw8000"      :depends-on ("parameter-map-compiler"
+               (:file "dw8000"                 :depends-on ("synthesizer"
+                                                            "midi-application"
+                                                            "parameter-map-compiler"))
+               (:file "convert-cc-dw8000"      :depends-on ("midi-application"
+                                                            "parameter-map-compiler"
                                                             "dw8000")))
   #+asdf-unicode :encoding #+asdf-unicode :utf-8)
 

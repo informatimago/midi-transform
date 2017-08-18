@@ -50,6 +50,8 @@
    "SYNTHESIZER"
    "SYNTHESIZER-NAME"
    "SYNTHESIZER-CHANNEL"
+   "SYNTHESIZER-SOURCE"
+   "SYNTHESIZER-DESTINATION"
    "SYNTHESIZER-CURRENT-PROGRAM"
    "GET-CURRENT-PROGRAM"
    "UPDATE-PARAMETER"))
@@ -98,9 +100,11 @@
 
 
 (defclass synthesizer ()
-  ((name            :initarg :name       :reader synthesizer-name)
-   (channel         :initarg :channel    :reader synthesizer-channel)
-   (current-program :initform nil        :accessor synthesizer-current-program)))
+  ((name                 :initarg :name        :reader   synthesizer-name)
+   (channel              :initarg :channel     :reader   synthesizer-channel)
+   (source-endpoint      :initarg :source      :accessor synthesizer-source)
+   (destination-endpoint :initarg :destination :accessor synthesizer-destination)
+   (current-program      :initform nil         :accessor synthesizer-current-program)))
 
 (defgeneric update-parameter (parameter value)
   (:method ((parameter t) (value t))

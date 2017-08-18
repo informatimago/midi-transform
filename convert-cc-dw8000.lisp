@@ -19,7 +19,11 @@
 ;;;;    - CC messages are transformed into parameter-change sysex (updating
 ;;;;      the channel if needed).
 ;;;;
+;;;;
+;;;;    Secondary Features (implemented):
+;;;;
 ;;;;    - pass through mode for knobs (continuous controls).
+;;;;
 ;;;;
 ;;;;    Secondary Features (not implemented yet):
 ;;;;
@@ -70,6 +74,7 @@
         "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.UTILITY"
         "COM.INFORMATIMAGO.MACOSX.COREMIDI"
         "COM.INFORMATIMAGO.MACOSX.COREMIDI.MIDI"
+        "COM.INFORMATIMAGO.MIDI.ABSTRACT-MIDI-APPLICATION"
         "COM.INFORMATIMAGO.MIDI.ABSTRACT-SYNTHESIZER"
         "COM.INFORMATIMAGO.MIDI.PARAMETER-MAP-COMPILER"
         "COM.INFORMATIMAGO.MIDI.KORG.DW-8000")
@@ -77,13 +82,7 @@
   (:export "INITIALIZE" "RUN" "PRINT-MIDI-DEVICES"))
 (in-package "COM.INFORMATIMAGO.MIDI.TRANSFORM")
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;
-
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 
 (defvar *effects* '())
@@ -223,12 +222,8 @@
           (terpri))))))
 
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
-;;;
-
 
 (defun find-endpoint-for-external-device (external-device &key (direction :source))
   "Finds a source or destination endpoint belonging to a device, that
@@ -298,46 +293,6 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 
-
-(defclass midi-application ()
-  ((client      :initarg :client      :accessor midi-client)
-   (input-port  :initarg :input-port  :accessor midi-input-port)
-   (output-port :initarg :output-port :accessor midi-output-port)
-   (sources     :initform '()         :accessor midi-sources
-                :documentation "Sources connected to our input-port.")))
-
-(defun create-midi-application (class-name client-name client-notify-function port-read-function
-                                &rest arguments &key &allow-other-keys)
-  (let ((client (client-create client-name client-notify-function)))
-    (apply (function make-instance) class-name
-           :client client
-           :output-port (output-port-create client (format nil "~A Out" client-name))
-           :input-port  (input-port-create  client (format nil "~A In"  client-name)
-                                            port-read-function)
-           arguments)))
-
-(defgeneric terminate (application)
-  (:method ((self midi-application))
-    (loop
-      :with input-port := (midi-input-port self)
-      :for (nil . source) :in (midi-sources self)
-      :do (port-disconnect-source input-port source))
-    (port-dispose (midi-input-port  self))  (slot-makunbound self 'input-port)
-    (port-dispose (midi-output-port self))  (slot-makunbound self 'output-port)
-    (client-dispose (midi-client self))     (slot-makunbound self 'client)))
-
-(defgeneric connect-source (application source refcon)
-  (:method ((self midi-application) source refcon)
-    (push (cons refcon source) (midi-sources self))
-    (port-connect-source (midi-input-port self) source (cffi:make-pointer refcon))
-    source))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;
-;;;
-
-
 (defclass convert-cc-dw8000-application (midi-application)
   ((dw-8000-device-name    :reader dw-8000-device-name    :initarg :dw-8000-device-name)
    (dw-8000-channel        :reader dw-8000-channel        :initarg :dw-8000-channel)
@@ -361,18 +316,21 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
     (send (midi-output-port application)
           (controller-destination application)
           (packet-list-from-messages
-           (list (make-instance 'control-change-message :TIME (current-host-time)
-                                                        :CHANNEL (controller-channel application)
-                                                        :CONTROLLER controller
-                                                        :VALUE (if new-state 127 0)))))))
+           (list (make-instance 'control-change-message :time (current-host-time)
+                                                        :channel (controller-channel application)
+                                                        :controller controller
+                                                        :value (if new-state 127 0)))))))
 
 
 
 (defmethod initialize-instance :after ((self convert-cc-dw8000-application) &key &allow-other-keys)
-  (setf (slot-value self 'dw-8000-destination)    (find-destination-endpoint-for-device-named (dw-8000-device-name self))
-        (slot-value self 'dw-8000-source)         (find-source-endpoint-for-device-named      (dw-8000-device-name self))
-        (slot-value self 'controller-destination) (find-destination-endpoint-for-device-named (controller-device-name self))
-        (slot-value self 'controller-source)      (find-source-endpoint-for-device-named      (controller-device-name self)))
+  (let ((synthesizer (synthesizer self)))
+    (setf (slot-value self 'dw-8000-destination)    (find-destination-endpoint-for-device-named (dw-8000-device-name self))
+          (slot-value self 'dw-8000-source)         (find-source-endpoint-for-device-named      (dw-8000-device-name self))
+          (synthesizer-destination synthesizer)     (slot-value self 'dw-8000-destination)
+          (synthesizer-source      synthesizer)     (slot-value self 'dw-8000-source)
+          (slot-value self 'controller-destination) (find-destination-endpoint-for-device-named (controller-device-name self))
+          (slot-value self 'controller-source)      (find-source-endpoint-for-device-named      (controller-device-name self))))
   (connect-source self (slot-value self 'dw-8000-source)     (dw-8000-refcon self))
   (connect-source self (slot-value self 'controller-source)  (controller-refcon self)))
 
@@ -385,25 +343,6 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
   (:method ((self convert-cc-dw8000-application) refcon)
     (= refcon (dw-8000-refcon self))))
 
-(defun selected-group (application)
-  (let ((select (first (com.informatimago.midi.parameter-map-compiler::map-cc-selects
-                        (cc-map application)))))
-    (position (com.informatimago.midi.parameter-map-compiler::select-selected-group select)
-              (com.informatimago.midi.parameter-map-compiler::select-groups select))))
-
-(defmethod update-parameter ((parameter dw-8000-parameter) (value integer))
-  (unless (<= (parameter-min parameter) value (parameter-max parameter))
-    (error "Invalid parameter value ~S for parameter ~S" value parameter))
-  (format t "~&CC: (PAGE ~A) UPDATE PARAMETER ~A TO ~A~%"
-          (selected-group *midi-application*) (parameter-name parameter) value)
-  (send-sysex (sysex-request
-               (dw-8000-destination *midi-application*)
-               (parameter-change-request (dw-8000-channel *midi-application*)
-                                         (parameter-offset parameter)
-                                         value)
-               nil nil))
-  value)
-
 (defgeneric map-controller-to-sysex-request (application controller value)
   (:method ((self convert-cc-dw8000-application) controller value)
     (let ((map (cc-map self))
@@ -413,9 +352,6 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
-;;;
-
-
 
 (defgeneric default-map-cc (synthesizer))
 

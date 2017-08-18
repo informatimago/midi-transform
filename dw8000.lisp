@@ -31,10 +31,12 @@
 ;;;;    You should have received a copy of the GNU Affero General Public License
 ;;;;    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;;**************************************************************************
+
 (defpackage "COM.INFORMATIMAGO.MIDI.KORG.DW-8000"
   (:use "COMMON-LISP"
         "MIDI"
-        "COM.INFORMATIMAGO.MIDI.ABSTRACT-SYNTHESIZER")
+        "COM.INFORMATIMAGO.MIDI.ABSTRACT-SYNTHESIZER"
+        "COM.INFORMATIMAGO.MIDI.ABSTRACT-MIDI-APPLICATION")
   (:import-from "COM.INFORMATIMAGO.MACOSX.COREMIDI"
                 "SEND-SYSEX" "SYSEX-REQUEST")
   (:export
@@ -142,7 +144,6 @@
    "PROGRAM-PARAMETER-VALUES"
    "SYNTHESIZER-PARAMETERS"
    ))
-
 (in-package "COM.INFORMATIMAGO.MIDI.KORG.DW-8000")
 
 (deftype channel          () '(integer 0 15))
@@ -492,7 +493,8 @@
 
 (defclass dw-8000-synthesizer (synthesizer)
   ((program-parameters :reader synthesizer-program-parameters
-                       :reader synthesizer-parameters)))
+                       :reader synthesizer-parameters)
+   (parameter-page     :initform 0 :accessor synthesizer-parameter-page)))
 
 (defmethod initialize-instance :after ((self dw-8000-synthesizer) &key &allow-other-keys)
   (setf (synthesizer-current-program self) (make-instance 'dw-8000-program :name "Default"))
@@ -542,29 +544,25 @@
         new-value))
 
 (defmethod update-parameter ((parameter dw-8000-program-parameter) value)
-  (let ((current-value (parameter-value parameter)))
+  (let ((current-value (parameter-value parameter))
+        (synthesizer   (synthesizer *midi-application*)))
     (flet ((update ()
              (setf (parameter-tracking parameter) t
                    (parameter-value parameter) value)
              (when (/= value current-value)
                (format t "~&CC: (PAGE ~A) UPDATE PARAMETER ~A TO ~A~%"
-                       (com.informatimago.midi.transform::selected-group
-                        com.informatimago.midi.transform::*midi-application*)
+                       (synthesizer-parameter-page synthesizer)
                        (parameter-name parameter) value)
                (send-sysex (sysex-request
-                            (com.informatimago.midi.transform::dw-8000-destination
-                             com.informatimago.midi.transform::*midi-application*)
-                            (parameter-change-request
-                             (synthesizer-channel (com.informatimago.midi.transform::synthesizer
-                                                   com.informatimago.midi.transform::*midi-application*))
-                             (parameter-offset parameter)
-                             value)
+                            (synthesizer-destination synthesizer)
+                            (parameter-change-request (synthesizer-channel synthesizer)
+                                                      (parameter-offset parameter)
+                                                      value)
                             nil nil))))
            (not-tracking (next)
              (setf (parameter-tracking parameter) next)
              (format t "~&CC: (PAGE ~A) PARAMETER ~A NOT PASSED THROUGH ~A YET (KNOB AT ~A)~%"
-                     (com.informatimago.midi.transform::selected-group
-                      com.informatimago.midi.transform::*midi-application*)
+                     (synthesizer-parameter-page synthesizer)
                      (parameter-name parameter)
                      current-value
                      value)))
@@ -576,7 +574,7 @@
          (cond ((< value (- current-value 1))   (not-tracking :less))
                ((> value (+ current-value 1))   (not-tracking :more))
                (t                               (update))))
-         ;; We won't move until we reach the current-value
+        ;; We won't move until we reach the current-value
         ((:less)
          (when (>= value current-value)         (update)))
         ((:more)
@@ -615,6 +613,7 @@
            :update-function (lambda (parameter value)
                               (declare (ignore parameter))
                               (format t "~&    Selected page ~A~%" value)
+                              (setf (synthesizer-parameter-page synthesizer) value)
                               (loop :for parameter
                                       :across (synthesizer-program-parameters synthesizer)
                                     :do (setf (parameter-tracking parameter) nil))))))))
