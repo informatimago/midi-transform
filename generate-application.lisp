@@ -99,7 +99,9 @@
            (let ((value (if arguments
                             (1- (check-bounds (parse-integer (pop arguments)) 1 16 "MIDI Channel"))
                             (error "Missing a MIDI controller device name after ~S" arg))))
-             (setf result (list* :controller-channel value result)))))
+             (setf result (list* :controller-channel value result))))
+          ((member arg '("--print-backtrace-on-error") :test (function string=))
+           (setf result (list* :print-backtrace-on-error t result))))
     :finally (return result)))
 
 (defun print-help (pname)
@@ -115,21 +117,31 @@
   (format t "~2%")
   (finish-output))
 
+
 (defun main ()
-  (let ((options (parse-arguments #+ccl (rest (ccl::command-line-arguments)))))
-    (cond
-      ((getf options :list-devices)
-       (com.informatimago.midi.transform:initialize)
-       (com.informatimago.midi.transform:print-midi-devices))
-      ((getf options :help)
-       (print-help (file-namestring (first (ccl::command-line-arguments)))))
-      (t
-       (com.informatimago.midi.transform:initialize)
-       (com.informatimago.midi.transform:run
-        :dw-8000-device-name    (getf options :dw-8000-device-name    "Korg DW-8000")
-        :dw-8000-channel        (getf options :dw-8000-channel        10)
-        :controller-device-name (getf options :controller-device-name "VI61")
-        :controller-channel     (getf options :controller-channel     10)))))
+  (let ((print-backtrace-on-error nil))
+    (handler-bind
+        ((error (lambda (condition)
+                  (when print-backtrace-on-error
+                    (terpri *error-output*)
+                    (com.informatimago.midi.transform::print-backtrace *error-output*))
+                  (format *error-output* "~%ERROR: ~A~%" condition)
+                  (ccl:quit 1))))
+      (let ((options (parse-arguments #+ccl (rest (ccl::command-line-arguments)))))
+        (setf print-backtrace-on-error (getf options :print-backtrace-on-error))
+        (cond
+          ((getf options :list-devices)
+           (com.informatimago.midi.transform:initialize)
+           (com.informatimago.midi.transform:print-midi-devices))
+          ((getf options :help)
+           (print-help (file-namestring (first (ccl::command-line-arguments)))))
+          (t
+           (com.informatimago.midi.transform:initialize)
+           (com.informatimago.midi.transform:run
+            :dw-8000-device-name    (getf options :dw-8000-device-name    "Korg DW-8000")
+            :dw-8000-channel        (getf options :dw-8000-channel        10)
+            :controller-device-name (getf options :controller-device-name "VI61")
+            :controller-channel     (getf options :controller-channel     10)))))))
   (ccl:quit 0))
 
 #+ccl (ccl:save-application "midi-transform"
