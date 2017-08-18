@@ -78,4 +78,5 @@
 
 (ql:quickload :com.informatimago.midi.transform)
 
+(print '(com.informatimago.midi.transform:run))
 ;;;; THE END ;;;;

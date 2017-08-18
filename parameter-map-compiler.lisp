@@ -34,7 +34,7 @@
 ;; (delete-package "COM.INFORMATIMAGO.MIDI.PARAMETER-MAP-COMPILER")
 (defpackage "COM.INFORMATIMAGO.MIDI.PARAMETER-MAP-COMPILER"
   (:use "COMMON-LISP"
-        "COM.INFORMATIMAGO.MIDI.PARAMETER")
+        "COM.INFORMATIMAGO.MIDI.ABSTRACT-SYNTHESIZER")
   (:export "SELECT" "GROUP" "MAP-CC"
            "COMBINATION" "SELECTION"
            "CONTINUOUS" "MOMENTARY"
@@ -159,6 +159,8 @@ actions for map-cc:
 
 (defgeneric link-cells (output input)
   (:method ((output t) (input t))
+    (assert output (output) "Output cannot be NIL.")
+    (assert input  (input)  "Input cannot be NIL.")
     (push output (upstream-cells   input))
     (push input  (downstream-cells output))
     (values output input)))
@@ -428,7 +430,7 @@ group), one of them being active, along with the select controller.
 
 ;;; ----------------------------------------
 ;;;
-(defclass select (input)
+(defclass select (cell input)
   ((selector       :initarg :selector
                    :reader select-selector)
    (groups         :initform #()
@@ -438,12 +440,11 @@ group), one of them being active, along with the select controller.
 
 (defgeneric select-group (select group-number)
   (:method ((self select) group-number)
-    (setf (select-selected-group self) (aref (select-groups self) group-number))
-    (format t "~&    Selected group ~A~%" group-number)))
+    (setf (select-selected-group self) (aref (select-groups self) group-number))))
 
 (defmethod (setf cell-input) :after (new-value (self select))
-  (declare (ignore new-value))
-  (select-group self (cell-input self)))
+  (select-group self (cell-input self))
+  (setf (cell-output self) new-value))
 
 (defmethod cell-output-changed ((self select) (changed output))
   (setf (cell-input self) (cell-output changed)))
@@ -491,13 +492,16 @@ group), one of them being active, along with the select controller.
     :for expression :in map
     :for op := (first expression)
     :do (case op
-          (select  (setf parameters
-                         (nconc parameters
-                                (mapcan (lambda (group)
-                                          (unless (eq 'group (first group))
-                                            (error "Invalid group ~S" group))
-                                           (collect-parameters (rest group)))
-                                        (rest (rest expression))))))
+          (select  (destructuring-bind (parameter-spec controller &rest groups) (rest expression)
+                     (declare (ignore controller))
+                     (setf parameters
+                           (cons (bare-parameter parameter-spec)
+                                 (nconc parameters
+                                        (mapcan (lambda (group)
+                                                  (unless (eq 'group (first group))
+                                                    (error "Invalid group ~S" group))
+                                                  (collect-parameters (rest group)))
+                                                groups))))))
           (map-cc  (push (bare-parameter (second expression))
                          parameters))
           (otherwise (error "Invalid operator in map-cc: ~S" op)))
@@ -516,7 +520,11 @@ group), one of them being active, along with the select controller.
     arguments))
 
 (defun find-argument (name arguments)
-  (gethash name arguments))
+  (let ((argument (gethash name arguments)))
+    (unless argument
+      (error "No argument named ~S could be found in given arguments table"
+             name))
+    argument))
 
 (defun compile-controller-expression (expression arguments &optional pr-min pr-max)
   (let ((op1 (first expression)))
@@ -554,9 +562,12 @@ group), one of them being active, along with the select controller.
              (error "Unexpected token ~S in controller expression ~S" op2 expression)))))))
 
 (defun compile-select-expression (expression arguments)
-  (destructuring-bind (op controller &rest groups) expression
+  (destructuring-bind (op parameter-spec controller &rest groups) expression
     (assert (eq 'select op))
-    (let ((select (make-instance 'select)))
+    ;; for now, we only take atomic parameter-spec (we expect the controller to be discrete).
+    (let* ((argument (find-argument parameter-spec arguments))
+           (select   (make-instance 'select)))
+      (link-cells select argument)
       (add-controller select (compile-controller-expression controller arguments))
       (dolist (group groups)
         (destructuring-bind (op &rest items) group
@@ -591,7 +602,7 @@ group), one of them being active, along with the select controller.
 
 (defun compile-map (items parameters)
   (check-type items list)
-  (check-type parameters list)
+  (check-type parameters sequence)
   (compile-items items (build-argument-table items parameters)))
 
 

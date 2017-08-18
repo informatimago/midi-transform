@@ -34,10 +34,10 @@
 (defpackage "COM.INFORMATIMAGO.MIDI.KORG.DW-8000"
   (:use "COMMON-LISP"
         "MIDI"
-        "COM.INFORMATIMAGO.MIDI.PARAMETER")
+        "COM.INFORMATIMAGO.MIDI.ABSTRACT-SYNTHESIZER")
+  (:import-from "COM.INFORMATIMAGO.MACOSX.COREMIDI"
+                "SEND-SYSEX" "SYSEX-REQUEST")
   (:export
-   "DW8000-PARAMETER"
-   "PARAMETERS"
    "CHANNEL"
    "PROGRAM-NUMBER"
    "PARAMETER-OFFSET"
@@ -123,7 +123,26 @@
    "PORTAMENTO"
    "AFTERTOUCH-OSC-MG"
    "AFTERTOUCH-VCF"
-   "AFTERTOUCH-VCA"))
+   "AFTERTOUCH-VCA"
+   ;; internal parameter:
+   "PAGE"
+
+   "DW-8000-PARAMETER" "PARAMETER-OFFSET"
+   "DW-8000-PROGRAM"
+   "PROGRAM-VALUES"
+   "PROGRAM-PARAMETERS"
+   "PROGRAM-VALUE-FOR-PARAMETER"
+
+   "DW-8000-SYNTHESIZER" "GET-CURRENT-PROGRAM"
+   "UPDATE-PARAMETER"
+   "DW-8000-PROGRAM-PARAMETER"
+   "META-PARAMETER"
+   "PARAMETER-PROGRAM"
+   "PARAMETER-VALUE"
+   "PROGRAM-PARAMETER-VALUES"
+   "SYNTHESIZER-PARAMETERS"
+   ))
+
 (in-package "COM.INFORMATIMAGO.MIDI.KORG.DW-8000")
 
 (deftype channel          () '(integer 0 15))
@@ -306,30 +325,34 @@
       (setf (aref v (incf i)) +eox+)
       v)))
 
+
+
+;;;---------------------------------------------------------------------
+
+(defclass dw-8000-parameter (parameter)
+  ((offset :initarg :offset :reader parameter-offset)))
+
+(defmethod print-object ((self dw-8000-parameter) stream)
+  (print-unreadable-object (self stream :identity t :type t)
+    (format stream "~S" (list :name   (parameter-name self)
+                              :offset (parameter-offset self)
+                              :min    (parameter-min self)
+                              :max    (parameter-max self)
+                              :values (parameter-values self))))
+  self)
+
+;;;---------------------------------------------------------------------
+
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun scat (&rest sds)
     (intern (apply (function concatenate) 'string (mapcar (function string) sds))))
   (defvar *parameters* (make-hash-table :test (function eql))))
 
-
-(defclass dw8000-parameter (parameter)
-  ((offset :initarg :offset :reader parameter-offset)))
-
-(defmethod print-object ((self dw8000-parameter) stream)
-  (format stream "~S" (list 'dw8000-parameter
-                            (parameter-name self)
-                            (parameter-offset self)
-                            (parameter-min self)
-                            (parameter-max self)
-                            (parameter-values self)))
-  self)
-
-
 (defmacro define-parameter (name offset (min max) &optional values)
   `(progn
      (setf (gethash ',name *parameters*)
            (setf (gethash ,offset *parameters*)
-                 (make-instance 'dw8000-parameter :name ',name
+                 (make-instance 'dw-8000-parameter :name ',name
                                                   :offset ,offset
                                                   :min ,min
                                                   :max ,max
@@ -337,7 +360,6 @@
      (defconstant ,(scat '+ name '+) ,offset)
      (deftype ,name () '(integer ,min ,max))
      ',name))
-
 
 (defun find-parameter (offset) (gethash offset *parameters*))
 
@@ -431,81 +453,171 @@
 (define-parameter aftertouch-vcf            49 (0 3))
 (define-parameter aftertouch-vca            50 (0 3))
 
-(defun parameters ()
-  (let ((result '()))
-    (maphash (lambda (k v)
-               (declare (ignore k))
-               (push v result))
-             *parameters*)
-    (delete-duplicates
-     (sort result (function <) :key (function parameter-offset)))))
+;;;---------------------------------------------------------------------
 
-#|
 
-(device-id-request 10)
-#(240 66 74 247)
+(defclass dw-8000-program (program)
+  ((parameters :allocation :class)
+   (values     :reader program-values)))
 
-(data-dump-request 10)
-#(240 66 58 3 16 247)
+(defgeneric program-values (program)
+  (:documentation "The values of the parameters of the program."))
 
-(write-request 10 0)
-#(240 66 58 3 17 0 247)
+(defgeneric program-parameter-values (program)
+  (:documentation "The dw-8000-program-parameter indirect values of the program."))
 
-(parameter-change-request 10 +cutoff+ 32)
-#(240 66 58 3 65 15 32 247)
+(defmethod program-parameters ((program dw-8000-program))
+  (unless (slot-boundp program 'parameters)
+    (let ((result (make-array 51)))
+      (maphash (lambda (k parameter)
+                 (declare (ignore k))
+                 (setf (aref result (parameter-offset parameter)) parameter))
+               *parameters*)
+      (setf (slot-value program 'parameters) result)))
+  (slot-value program 'parameters))
 
-(data-dump 10
-            '((osc1-octave 3)
-              (osc1-waveform 15)
-              (osc1-level 31)
-              (auto-bend-select 3)
-              (auto-bend-mode 1)
-              (auto-bend-time 31)
-              (auto-bend-intensity 31)
-              (osc2-octave 3)
-              (osc2-waveform 15)
-              (osc2-level 31)
-              (osc2-interval 7)
-              (osc2-detune 7)
-              (noise-level 31)
-              (assign-mode 3)
-              (parameter-no-memory 63)
-              (cutoff 63)
-              (resonance 31)
-              (keyboard-track 3)
-              (polarity 1)
-              (vcf-eg-intensity 31)
-              (vcf-attack 31)
-              (vcf-decay 31)
-              (vcf-break-point 31)
-              (vcf-slope 31)
-              (vcf-sustain 31)
-              (vcf-release 31)
-              (vcf-velocity-sensitivity 7)
-              (vca-attack 31)
-              (vca-decay 31)
-              (vca-break-point 31)
-              (vca-slope 31)
-              (vca-sustain 31)
-              (vca-release 31)
-              (vca-velocity-sensitivity 7)
-              (mg-wave-form 3)
-              (mg-frequency 31)
-              (mg-delay 31)
-              (mg-osc 31)
-              (mg-vcf 31)
-              (bend-osc 15)
-              (bend-vcf 1)
-              (delay-time 7)
-              (delay-factor 15)
-              (delay-feedback 15)
-              (delay-frequency 31)
-              (delay-intensity 31)
-              (delay-effect-level 15)
-              (portamento 31)
-              (aftertouch-osc-mg 3)
-              (aftertouch-vcf 3)
-              (aftertouch-vca 3)))
-|#
+(defmethod program-value-for-parameter ((program dw-8000-program) (parameter dw-8000-parameter))
+  (aref (program-values program) (parameter-offset parameter)))
+
+(defun create-minimal-parameter-values (parameters)
+  (map-into (make-array 51 :element-type '(unsigned-byte 8))
+            (function parameter-min) parameters))
+
+(defmethod initialize-instance :after ((program dw-8000-program) &key &allow-other-keys)
+  (setf (slot-value program 'values) (create-minimal-parameter-values (program-parameters program))))
+
+
+
+;;;---------------------------------------------------------------------
+
+(defclass dw-8000-synthesizer (synthesizer)
+  ((program-parameters :reader synthesizer-program-parameters
+                       :reader synthesizer-parameters)))
+
+(defmethod initialize-instance :after ((self dw-8000-synthesizer) &key &allow-other-keys)
+  (setf (synthesizer-current-program self) (make-instance 'dw-8000-program :name "Default"))
+  (get-current-program self))
+
+(defmethod get-current-program ((self dw-8000-synthesizer) &optional on-completion)
+  #|
+  - send a SysEx request to get the program parameters.
+  - wait for an answer.
+  - fill the current-program with the received parameters.
+  |#
+  (when on-completion
+    (funcall on-completion self :error :not-implemented-yet)))
+
+
+;;;---------------------------------------------------------------------
+
+(defgeneric parameter-tracking (parameter))
+(defgeneric (setf parameter-tracking) (new-value parameter)
+  (:method (new-value (parameter t))
+    new-value))
+
+(defclass dw-8000-program-parameter ()
+  ((program   :initarg  :program   :accessor parameter-program)
+   (offset    :initarg  :offset    :accessor parameter-offset)
+   (tracking  :initform nil        :accessor parameter-tracking)))
+
+(defmethod parameter-name ((parameter dw-8000-program-parameter))
+  (parameter-name (aref (program-parameters (parameter-program parameter))
+                        (parameter-offset parameter))))
+
+(defmethod parameter-min ((parameter dw-8000-program-parameter))
+  (parameter-min (aref (program-parameters (parameter-program parameter))
+                       (parameter-offset parameter))))
+
+(defmethod parameter-max ((parameter dw-8000-program-parameter))
+  (parameter-max (aref (program-parameters (parameter-program parameter))
+                       (parameter-offset parameter))))
+
+(defmethod parameter-value ((parameter dw-8000-program-parameter))
+  (aref (program-values (parameter-program parameter))
+        (parameter-offset parameter)))
+
+(defmethod (setf parameter-value) (new-value (parameter dw-8000-program-parameter))
+  (setf (aref (program-values (parameter-program parameter))
+              (parameter-offset parameter))
+        new-value))
+
+(defmethod update-parameter ((parameter dw-8000-program-parameter) value)
+  (let ((current-value (parameter-value parameter)))
+    (flet ((update ()
+             (setf (parameter-tracking parameter) t
+                   (parameter-value parameter) value)
+             (when (/= value current-value)
+               (format t "~&CC: (PAGE ~A) UPDATE PARAMETER ~A TO ~A~%"
+                       (com.informatimago.midi.transform::selected-group
+                        com.informatimago.midi.transform::*midi-application*)
+                       (parameter-name parameter) value)
+               (send-sysex (sysex-request
+                            (com.informatimago.midi.transform::dw-8000-destination
+                             com.informatimago.midi.transform::*midi-application*)
+                            (parameter-change-request
+                             (synthesizer-channel (com.informatimago.midi.transform::synthesizer
+                                                   com.informatimago.midi.transform::*midi-application*))
+                             (parameter-offset parameter)
+                             value)
+                            nil nil))))
+           (not-tracking (next)
+             (setf (parameter-tracking parameter) next)
+             (format t "~&CC: (PAGE ~A) PARAMETER ~A NOT PASSED THROUGH ~A YET (KNOB AT ~A)~%"
+                     (com.informatimago.midi.transform::selected-group
+                      com.informatimago.midi.transform::*midi-application*)
+                     (parameter-name parameter)
+                     current-value
+                     value)))
+      (case (parameter-tracking parameter)
+        ((nil)
+         ;; We need current-value ± 1 for the case where the know is
+         ;; at the current value, and moves out.  In that case we want
+         ;; to update immediately.
+         (cond ((< value (- current-value 1))   (not-tracking :less))
+               ((> value (+ current-value 1))   (not-tracking :more))
+               (t                               (update))))
+         ;; We won't move until we reach the current-value
+        ((:less)
+         (when (>= value current-value)         (update)))
+        ((:more)
+         (when (<= value current-value)         (update)))
+        ;; Once we've already updated, we can go on.
+        (t                                      (update))))))
+
+
+(defmethod program-parameter-values ((program dw-8000-program))
+  (map 'vector (lambda (parameter)
+                 (make-instance 'dw-8000-program-parameter
+                                :program program
+                                :offset (parameter-offset parameter)))
+    (program-parameters program)))
+
+
+
+(defclass internal-parameter (parameter)
+  ((update-function :initarg :update-function :reader parameter-update-function))
+  (:default-initargs :min 0 :max 1 :values '()))
+
+(defmethod update-parameter ((parameter internal-parameter) value)
+  (funcall (parameter-update-function parameter) parameter value))
+
+
+(defmethod (setf synthesizer-current-program) :after (new-program (synthesizer dw-8000-synthesizer))
+  (setf (slot-value synthesizer 'program-parameters)
+        (concatenate
+         'vector
+         (program-parameter-values new-program)
+         (vector
+          (make-instance
+           'internal-parameter
+           :name 'page
+           :max 2
+           :update-function (lambda (parameter value)
+                              (declare (ignore parameter))
+                              (format t "~&    Selected page ~A~%" value)
+                              (loop :for parameter
+                                      :across (synthesizer-program-parameters synthesizer)
+                                    :do (setf (parameter-tracking parameter) nil))))))))
+
 
 ;;;; THE END ;;;;
