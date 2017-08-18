@@ -147,7 +147,7 @@
 #+ccl (ccl:save-application "midi-transform"
                             :toplevel-function (function main)
                             :init-file nil
-                            :error-handler nil
+                            :error-handler :quit
                             :application-class nil
                             :clear-clos-caches nil
                             :purify t
