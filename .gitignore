@@ -6,3 +6,6 @@
 .DS_Store
 ._.DS_Store
 *.bak
+
+# binaries:
+midi-transform
