@@ -174,7 +174,7 @@
 
 (defun device-id (channel device-id)
   `(device-id ,channel ,device-id))
-(defun data-dump (channel device-id parameters)
+(defun received-data-dump (channel device-id parameters)
   `(data-dump ,channel ,device-id ,parameters))
 (defun write-completed-status (channel device-id)
   `(write-completed-status ,channel ,device-id))
@@ -229,7 +229,7 @@
                                           (incf s 2)
                                       :finally (return parameters))))
                     (eat +eox+)
-                    (data-dump channel device-id parameters)))
+                    (received-data-dump channel device-id parameters)))
                  ((#.+write-completed-status+)
                   (write-completed-status channel device-id))
                  ((#.+write-error-status+)
