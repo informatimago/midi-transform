@@ -149,30 +149,32 @@
                            (signal condition))))
 
                (dolist (message message-list)
-                 ;; (unless (typep message '(or midi:timing-clock-message midi:active-sensing-message))
-                 ;;   (format t "~&RC: ~A: ~A~%" source-connection-refcon message))
-                 (typecase message
-                   (program-change-message
-                    (let ((program  (message-program message)))
-                      (format t "~&RC: ~A: PC ~A~%" source-connection-refcon program)
+                 (when (and (typep message 'channel-message)
+                            (= (message-channel message) (controller-channel *midi-application*)))
+                   ;; (unless (typep message '(or midi:timing-clock-message midi:active-sensing-message))
+                   ;;   (format t "~&RC: ~A: ~A~%" source-connection-refcon message))
+                   (typecase message
+                     (program-change-message
+                      (let ((program  (message-program message)))
+                        (format t "~&RC: ~A: PC ~A~%" source-connection-refcon program)
+                        (unless (= (message-channel message)
+                                   (dw-8000-channel *midi-application*))
+                          (setf (message-channel message) (dw-8000-channel *midi-application*)))
+                        (push message output-list)))
+                     (control-change-message
+                      (let ((controller (message-controller message))
+                            (value      (message-value      message)))
+                        ;; (format t "~&RC: ~A: CC ~A ~A~%" source-connection-refcon controller value)
+                        (if (configuringp *midi-application*)
+                            (configure *midi-application* controller value)
+                            (map-controller-to-sysex-request *midi-application* controller value))))
+                     (t
+                      ;; (unless (typep message '(or midi:timing-clock-message midi:active-sensing-message))
+                      ;;   (format t "~&RC: ~A: ~A~%" source-connection-refcon message))
                       (unless (= (message-channel message)
                                  (dw-8000-channel *midi-application*))
                         (setf (message-channel message) (dw-8000-channel *midi-application*)))
-                      (push message output-list)))
-                   (control-change-message
-                    (let ((controller (message-controller message))
-                          (value      (message-value      message)))
-                      ;; (format t "~&RC: ~A: CC ~A ~A~%" source-connection-refcon controller value)
-                      (if (configuringp *midi-application*)
-                          (configure *midi-application* controller value)
-                          (map-controller-to-sysex-request *midi-application* controller value))))
-                   (t
-                    ;; (unless (typep message '(or midi:timing-clock-message midi:active-sensing-message))
-                    ;;   (format t "~&RC: ~A: ~A~%" source-connection-refcon message))
-                    (unless (= (message-channel message)
-                               (dw-8000-channel *midi-application*))
-                      (setf (message-channel message) (dw-8000-channel *midi-application*)))
-                    (push message output-list)))))
+                      (push message output-list))))))
            (error (err)
              (format t "~&RC: ~A: ~A~%" source-connection-refcon  err)))))
 
