@@ -502,20 +502,6 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
 (defun initialize ()
   (coremidi-framework))
 
-(defun print-midi-devices ()
-  (dolist (device (append (devices)
-                          (external-devices)))
-    (let ((entities      (device-entities device)))
-      (format t "~30A ~%"
-              (name device))
-      (dolist (entity entities)
-        (format t "          - ~A~@[ <- ~{~A~^, ~}~]~@[ -> ~{~A~^, ~}~]~%"
-                (name entity)
-                (mapcar (function name) (entity-sources entity))
-                (mapcar (function name) (entity-destinations entity))))
-      (terpri)))
-  (finish-output))
-
 ;;;; THE END ;;;;
 
 
