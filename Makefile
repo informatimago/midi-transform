@@ -40,8 +40,7 @@ midi-transform: com.informatimago.midi.transform.asd \
 				dw8000.lisp \
 				generate-application.lisp \
 				loader.lisp \
-				parameter-map-compiler.lisp \
-				parameter.lisp
+				parameter-map-compiler.lisp
 	@printf '(push :save-image-and-quit *features*)\n(load "generate-application.lisp")\n'|$(CCL)
 
 help::
@@ -53,5 +52,9 @@ help::
 	@printf "$(HELP_FORMAT)" "install" "Installs the midi-transform executable in $(PREFIX)/bin."
 install::midi-transform
 	@install -v -m 755 midi-transform "$(PREFIX)/bin"
+
+
+README.pdf:README.rst
+	rst2pdf README.rst README.pdf
 
 #### THE END ####
