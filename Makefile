@@ -57,4 +57,13 @@ help::
 clean:
 	-@rm -rf midi-transform *.bak
 
+doc::documentation
+documentation:: documentation/vi61-dw8000-ch1.vi6 README.pdf
+
+documentation/vi61-dw8000-ch1.vi6:documentation/vi61-dw8000.vi6
+	vi61-generate-all-channels documentation/vi61-dw8000.vi6
+
+README.pdf:README.rst
+	rst2pdf README.rst README.pdf
+
 #### THE END ####

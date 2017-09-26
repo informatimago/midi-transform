@@ -33,7 +33,8 @@
 ;;;;**************************************************************************
 
 (defpackage "COM.INFORMATIMAGO.MIDI.ABSTRACT-SYNTHESIZER"
-  (:use "COMMON-LISP")
+  (:use "COMMON-LISP"
+        "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.QUEUE")
   (:export
    "PARAMETER"
    "PARAMETER-MAX"
@@ -54,7 +55,8 @@
    "SYNTHESIZER-DESTINATION"
    "SYNTHESIZER-CURRENT-PROGRAM"
    "GET-CURRENT-PROGRAM"
-   "UPDATE-PARAMETER"))
+   "UPDATE-PARAMETER"
+   "SYNTHESIZER-QUEUE"))
 (in-package "COM.INFORMATIMAGO.MIDI.ABSTRACT-SYNTHESIZER")
 
 
@@ -86,9 +88,9 @@
 
 (defgeneric program-value-for-parameter (program parameter)
   (:method ((program program) (parameter string))
-    (program-value-for-parameter program (program-parameter-by-name parameter)))
+    (program-value-for-parameter program (program-parameter-by-name program parameter)))
   (:method ((program program) (parameter symbol))
-    (program-value-for-parameter program (program-parameter-by-name parameter))))
+    (program-value-for-parameter program (program-parameter-by-name program parameter))))
 
 
 ;;;---------------------------------------------------------------------
@@ -96,15 +98,17 @@
 (defgeneric synthesizer-current-program (synthesizer))
 (defgeneric (setf synthesizer-current-program) (new-program synthesizer))
 
-(defgeneric get-current-program (synthesizer &optional on-completion))
+(defgeneric get-current-program (synthesizer))
 
 
 (defclass synthesizer ()
-  ((name                 :initarg :name        :reader   synthesizer-name)
-   (channel              :initarg :channel     :reader   synthesizer-channel)
-   (source-endpoint      :initarg :source      :accessor synthesizer-source)
-   (destination-endpoint :initarg :destination :accessor synthesizer-destination)
-   (current-program      :initform nil         :accessor synthesizer-current-program)))
+  ((name                 :initarg :name         :reader   synthesizer-name)
+   (model                :initform "Vanilla"    :reader   synthesizer-model)
+   (channel              :initarg :channel      :reader   synthesizer-channel)
+   (source-endpoint      :initarg :source       :accessor synthesizer-source)
+   (destination-endpoint :initarg :destination  :accessor synthesizer-destination)
+   (current-program      :initform nil          :accessor synthesizer-current-program)
+   (queue                :initform (make-queue) :reader   synthesizer-queue)))
 
 (defgeneric update-parameter (parameter value)
   (:method ((parameter t) (value t))

@@ -1,0 +1,1328 @@
+%PDF-1.4
+%“Œ‹ž ReportLab Generated PDF document http://www.reportlab.com
+1 0 obj
+<<
+/F1 2 0 R /F2 3 0 R /F3 8 0 R
+>>
+endobj
+2 0 obj
+<<
+/BaseFont /Helvetica /Encoding /WinAnsiEncoding /Name /F1 /Subtype /Type1 /Type /Font
+>>
+endobj
+3 0 obj
+<<
+/BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding /Name /F2 /Subtype /Type1 /Type /Font
+>>
+endobj
+4 0 obj
+<<
+/A <<
+/S /URI /Type /Action /URI (https://www.youtube.com/watch?v=zUB6otw7lic)
+>> /Border [ 0 0 0 ] /Rect [ 85.69291 614.7736 297.7129 626.7736 ] /Subtype /Link /Type /Annot
+>>
+endobj
+5 0 obj
+<<
+/A <<
+/S /URI /Type /Action /URI (https://www.stereoping.com/synth-controller/)
+>> /Border [ 0 0 0 ] /Rect [ 85.69291 578.7736 282.4229 590.7736 ] /Subtype /Link /Type /Annot
+>>
+endobj
+6 0 obj
+<<
+/A <<
+/S /URI /Type /Action /URI (https://www.youtube.com/watch?v=K6nbcbXXn5g)
+>> /Border [ 0 0 0 ] /Rect [ 85.69291 560.7736 306.6329 572.7736 ] /Subtype /Link /Type /Annot
+>>
+endobj
+7 0 obj
+<<
+/Annots [ 4 0 R 5 0 R 6 0 R ] /Contents 30 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 29 0 R /Resources <<
+/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>> /Rotate 0 
+  /Trans <<
+
+>> /Type /Page
+>>
+endobj
+8 0 obj
+<<
+/BaseFont /Courier /Encoding /WinAnsiEncoding /Name /F3 /Subtype /Type1 /Type /Font
+>>
+endobj
+9 0 obj
+<<
+/Contents 31 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 29 0 R /Resources <<
+/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>> /Rotate 0 /Trans <<
+
+>> 
+  /Type /Page
+>>
+endobj
+10 0 obj
+<<
+/Contents 32 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 29 0 R /Resources <<
+/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>> /Rotate 0 /Trans <<
+
+>> 
+  /Type /Page
+>>
+endobj
+11 0 obj
+<<
+/Contents 33 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 29 0 R /Resources <<
+/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>> /Rotate 0 /Trans <<
+
+>> 
+  /Type /Page
+>>
+endobj
+12 0 obj
+<<
+/A <<
+/S /URI /Type /Action /URI (http://www.gnu.org/licenses/)
+>> /Border [ 0 0 0 ] /Rect [ 135.2329 699.0236 260.2829 711.0236 ] /Subtype /Link /Type /Annot
+>>
+endobj
+13 0 obj
+<<
+/Annots [ 12 0 R ] /Contents 34 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 29 0 R /Resources <<
+/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>> /Rotate 0 
+  /Trans <<
+
+>> /Type /Page
+>>
+endobj
+14 0 obj
+<<
+/Outlines 16 0 R /PageLabels 35 0 R /PageMode /UseNone /Pages 29 0 R /Type /Catalog
+>>
+endobj
+15 0 obj
+<<
+/Author () /CreationDate (D:20170926090803-01'00') /Creator (\(unspecified\)) /Keywords () /ModDate (D:20170926090803-01'00') /Producer (ReportLab PDF Library - www.reportlab.com) 
+  /Subject (\(unspecified\)) /Title (midi-transform) /Trapped /False
+>>
+endobj
+16 0 obj
+<<
+/Count 14 /First 17 0 R /Last 28 0 R /Type /Outlines
+>>
+endobj
+17 0 obj
+<<
+/Count 3 /Dest [ 7 0 R /XYZ 62.69291 551.0236 0 ] /First 18 0 R /Last 20 0 R /Next 21 0 R /Parent 16 0 R 
+  /Title (Features)
+>>
+endobj
+18 0 obj
+<<
+/Dest [ 7 0 R /XYZ 62.69291 518.0236 0 ] /Next 19 0 R /Parent 17 0 R /Title (Main Features:)
+>>
+endobj
+19 0 obj
+<<
+/Dest [ 7 0 R /XYZ 62.69291 416.0236 0 ] /Next 20 0 R /Parent 17 0 R /Prev 18 0 R /Title (Secondary Features \(implemented\):)
+>>
+endobj
+20 0 obj
+<<
+/Dest [ 7 0 R /XYZ 62.69291 362.0236 0 ] /Parent 17 0 R /Prev 19 0 R /Title (Secondary Features \(not implemented yet\):)
+>>
+endobj
+21 0 obj
+<<
+/Count 2 /Dest [ 9 0 R /XYZ 62.69291 765.0236 0 ] /First 22 0 R /Last 23 0 R /Next 24 0 R /Parent 16 0 R 
+  /Prev 17 0 R /Title (Usage)
+>>
+endobj
+22 0 obj
+<<
+/Dest [ 9 0 R /XYZ 62.69291 542.8236 0 ] /Next 23 0 R /Parent 21 0 R /Title (RC File)
+>>
+endobj
+23 0 obj
+<<
+/Dest [ 9 0 R /XYZ 62.69291 482.8236 0 ] /Parent 21 0 R /Prev 22 0 R /Title (Commands)
+>>
+endobj
+24 0 obj
+<<
+/Dest [ 10 0 R /XYZ 62.69291 765.0236 0 ] /Next 25 0 R /Parent 16 0 R /Prev 21 0 R /Title (Example)
+>>
+endobj
+25 0 obj
+<<
+/Dest [ 10 0 R /XYZ 62.69291 362.8236 0 ] /Next 26 0 R /Parent 16 0 R /Prev 24 0 R /Title (Obtaining the sources)
+>>
+endobj
+26 0 obj
+<<
+/Dest [ 11 0 R /XYZ 62.69291 651.8236 0 ] /Next 27 0 R /Parent 16 0 R /Prev 25 0 R /Title (Compiling the binary program)
+>>
+endobj
+27 0 obj
+<<
+/Dest [ 11 0 R /XYZ 62.69291 435.2236 0 ] /Next 28 0 R /Parent 16 0 R /Prev 26 0 R /Title (TODO)
+>>
+endobj
+28 0 obj
+<<
+/Dest [ 11 0 R /XYZ 62.69291 201.0236 0 ] /Parent 16 0 R /Prev 27 0 R /Title (License)
+>>
+endobj
+29 0 obj
+<<
+/Count 5 /Kids [ 7 0 R 9 0 R 10 0 R 11 0 R 13 0 R ] /Type /Pages
+>>
+endobj
+30 0 obj
+<<
+/Length 8811
+>>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 741.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4 Tm /F2 20 Tf 24 TL 164.3849 0 Td (midi-transform) Tj T* -164.3849 0 Td ET
+Q
+Q
+q
+1 0 0 1 62.69291 683.0236 cm
+q
+BT 1 0 0 1 0 38 Tm 2.840697 Tw 12 TL /F1 10 Tf 0 0 0 rg (This is a little CoreMIDI MacOSX command-line program whose purpose is to convert some MIDI) Tj T* 0 Tw 2.478314 Tw (controller Controller Change MIDI messages into SysEx parameter change MIDI message for some) Tj T* 0 Tw 3.712126 Tw (synthesizer. Accessorily, it also forwards all the other MIDI messages from the controller to the) Tj T* 0 Tw (synthesizer.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 653.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 14 Tm /F1 10 Tf 12 TL 1.408555 Tw (Currently only the SysEx Parameter list for the Korg DW-8000/EX-8000 is implemented, with a default) Tj T* 0 Tw (mapping for the Alesis VI61 MIDI controller.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 635.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (Demo video at:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 629.0236 cm
+Q
+q
+1 0 0 1 62.69291 629.0236 cm
+Q
+q
+1 0 0 1 62.69291 617.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (https://www.youtube.com/watch?v=zUB6otw7lic) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 617.0236 cm
+Q
+q
+1 0 0 1 62.69291 599.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (See also:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 593.0236 cm
+Q
+q
+1 0 0 1 62.69291 593.0236 cm
+Q
+q
+1 0 0 1 62.69291 581.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (https://www.stereoping.com/synth-controller/) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 575.0236 cm
+Q
+q
+1 0 0 1 62.69291 563.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (https://www.youtube.com/watch?v=K6nbcbXXn5g) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 563.0236 cm
+Q
+q
+1 0 0 1 62.69291 530.0236 cm
+q
+BT 1 0 0 1 0 3.5 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Features) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 500.0236 cm
+q
+BT 1 0 0 1 0 3 Tm 18 TL /F2 15 Tf 0 0 0 rg (Main Features:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 488.0236 cm
+Q
+q
+1 0 0 1 62.69291 488.0236 cm
+Q
+q
+1 0 0 1 62.69291 476.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (Receives MIDI messages from the controller, and) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 470.0236 cm
+Q
+q
+1 0 0 1 62.69291 446.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 9 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 14 Tm /F1 10 Tf 12 TL 3.039982 Tw (for normal MIDI messages \(note, etc\), forwards them to the DW-8000 / EX-8000 synthesizer) Tj T* 0 Tw (\(updating the channel if needed\).) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 440.0236 cm
+Q
+q
+1 0 0 1 62.69291 428.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (CC messages are transformed into parameter-change sysex \(updating the channel if needed\).) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 428.0236 cm
+Q
+q
+1 0 0 1 62.69291 398.0236 cm
+q
+BT 1 0 0 1 0 3 Tm 18 TL /F2 15 Tf 0 0 0 rg (Secondary Features \(implemented\):) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 386.0236 cm
+Q
+q
+1 0 0 1 62.69291 386.0236 cm
+Q
+q
+1 0 0 1 62.69291 374.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (pass through mode for knobs \(continuous controls\).) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 374.0236 cm
+Q
+q
+1 0 0 1 62.69291 344.0236 cm
+q
+BT 1 0 0 1 0 3 Tm 18 TL /F2 15 Tf 0 0 0 rg (Secondary Features \(not implemented yet\):) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 332.0236 cm
+Q
+q
+1 0 0 1 62.69291 332.0236 cm
+Q
+q
+1 0 0 1 62.69291 308.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 9 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 14 Tm /F1 10 Tf 12 TL 1.985697 Tw (option for absolute or pass-thru mode for knobs. \(absolute is better when creating new sounds,) Tj T* 0 Tw (pass-thru is better when patching a sound live\).) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 302.0236 cm
+Q
+q
+1 0 0 1 62.69291 230.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 57 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 57 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (configure the CC mapping interactively:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 23 51 cm
+Q
+q
+1 0 0 1 23 -3 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 0 2 Tm  T* ET
+q
+1 0 0 1 20 48 cm
+Q
+q
+1 0 0 1 20 48 cm
+Q
+q
+1 0 0 1 20 36 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (select in the user interface a parameter of the target synthesizer.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 20 30 cm
+Q
+q
+1 0 0 1 20 18 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (receive a CC message from the controller.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 20 12 cm
+Q
+q
+1 0 0 1 20 0 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (establish the mapping between that CC message and the parameter.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 20 0 cm
+Q
+q
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 224.0236 cm
+Q
+q
+1 0 0 1 62.69291 212.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (support other target synthesizers \(Korg DSS-1 in addition to Korg DW-8000\).) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 206.0236 cm
+Q
+q
+1 0 0 1 62.69291 194.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (support multiple target synthesizers and multiple controllers.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 188.0236 cm
+Q
+q
+1 0 0 1 62.69291 176.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (load and save programs.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 170.0236 cm
+Q
+q
+1 0 0 1 62.69291 158.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (load and save whole program banks.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 152.0236 cm
+Q
+q
+1 0 0 1 62.69291 128.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 9 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 14 Tm /F1 10 Tf 12 TL 2.907674 Tw (currently bank MSB/LSB are ignored for program changes; they could be taken into account,) Tj T* 0 Tw (automatically downloading new banks.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 122.0236 cm
+Q
+q
+1 0 0 1 62.69291 110.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (add some graphical \(or ascii art\) features such as drawing the envelopes when modifying them\205) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 104.0236 cm
+Q
+q
+1 0 0 1 62.69291 92.02362 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (port to Linux \(eg. Raspberry Pi\)) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 92.02362 cm
+Q
+ 
+endstream
+endobj
+31 0 obj
+<<
+/Length 3470
+>>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 744.0236 cm
+q
+BT 1 0 0 1 0 3.5 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Usage) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 554.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 486 180 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 158 Tm /F3 10 Tf 12 TL ($ ./midi-transform  --help) Tj T*  T*  T* (midi-transform usage:) Tj T*  T* (    midi-transform [-h|--help] [-l|--list-devices]\\) Tj T* (                   [-dd|--dw-8000-device-name|-ed|--ex-8000-device-name  name]\\) Tj T* (                   [-dc|--dw-8000-channel|-ec|--ex-8000-channel  midi-channel]\\) Tj T* (                   [-cd|--controller-device-name  name]\\) Tj T* (                   [-cc|--controller-channel  midi-channel]) Tj T*  T* (  names can be found with --list-devices,) Tj T* (  midi-channel go from 1 to 16.) Tj T* (  Defaults are: -dd "Korg DW-8000" -dc 11 -cd "VI61" -cc 11) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 524.8236 cm
+q
+BT 1 0 0 1 0 3 Tm 18 TL /F2 15 Tf 0 0 0 rg (RC File) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 494.8236 cm
+q
+BT 1 0 0 1 0 14 Tm 2.83498 Tw 12 TL /F1 10 Tf 0 0 0 rg (When starting up, ) Tj /F3 10 Tf 0 0 0 rg (midi-transform) Tj /F1 10 Tf 0 0 0 rg ( will read the file ) Tj /F3 10 Tf 0 0 0 rg (.midi-transform.lisp) Tj /F1 10 Tf 0 0 0 rg ( in the user ) Tj /F3 10 Tf 0 0 0 rg (HOME) Tj /F1 10 Tf 0 0 0 rg  T* 0 Tw (directory, if it exists, and evaluate the Common Lisp expressions contained.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 464.8236 cm
+q
+BT 1 0 0 1 0 3 Tm 18 TL /F2 15 Tf 0 0 0 rg (Commands) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 434.8236 cm
+q
+BT 1 0 0 1 0 14 Tm 1.413828 Tw 12 TL /F1 10 Tf 0 0 0 rg (While running, ) Tj /F3 10 Tf 0 0 0 rg (midi-transform) Tj /F1 10 Tf 0 0 0 rg ( prints a prompt \(") Tj (> "\), and reads commands. Currently the following) Tj T* 0 Tw (commands are recognized:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 418.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F2 10 Tf 12 TL (quit) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 403.8236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 0 2 Tm  T* ET
+q
+1 0 0 1 20 0 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (stops running.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 387.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F2 10 Tf 12 TL (help) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 372.8236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 0 2 Tm  T* ET
+q
+1 0 0 1 20 0 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (prints the list of recognized commands.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 342.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 14 Tm /F1 10 Tf 12 TL 4.267251 Tw (Furthermore, when unrecognized commands are entered, they are interpreted as Common Lisp) Tj T* 0 Tw (expressions. Example:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 189.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 144 re B*
+Q
+q
+BT 1 0 0 1 0 122 Tm 12 TL /F3 10 Tf 0 0 0 rg ([pjb@despina :0.0 current-midi-transform]$ ./midi-transform) Tj T*  T* (>) Tj ( \(list \(lisp-implementation-type\) \(lisp-implementation-version\)\)) Tj T* ( --) Tj (>) Tj ( \("Clozure Common Lisp" "Version 1.11-r16635  \(DarwinX8664\)"\)) Tj T* (>) Tj ( \(+ 2 3\)) Tj T* ( --) Tj (>) Tj ( 5) Tj T* (>) Tj ( \(IN-PACKAGE "COM.INFORMATIMAGO.MIDI.TRANSFORM"\)) Tj T* ( --) Tj (>) Tj ( #) Tj (<) Tj (Package "COM.INFORMATIMAGO.MIDI.TRANSFORM") Tj (>) Tj  T* (>) Tj ( \(setf *midi-verbose* t\)) Tj T* ( --) Tj (>) Tj ( T) Tj T* (>) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+ 
+endstream
+endobj
+32 0 obj
+<<
+/Length 3224
+>>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 744.0236 cm
+q
+BT 1 0 0 1 0 3.5 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Example) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 374.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 360 re B*
+Q
+q
+BT 1 0 0 1 0 338 Tm 12 TL /F3 10 Tf 0 0 0 rg ($ ./midi-transform) Tj T* (    Selected group 0) Tj T* (>) Tj  T* (CC: UPDATE PARAMETER VCF-VELOCITY-SENSITIVITY TO 4) Tj T* (CC: UPDATE PARAMETER VCF-VELOCITY-SENSITIVITY TO 4) Tj T* (CC: UPDATE PARAMETER VCF-VELOCITY-SENSITIVITY TO 4) Tj T* (CC: UPDATE PARAMETER VCF-VELOCITY-SENSITIVITY TO 4) Tj T* (CC: UPDATE PARAMETER VCF-VELOCITY-SENSITIVITY TO 4) Tj T* (CC: UPDATE PARAMETER VCF-VELOCITY-SENSITIVITY TO 4) Tj T* (    Selected group 1) Tj T* (CC: UPDATE PARAMETER VCA-VELOCITY-SENSITIVITY TO 3) Tj T* (CC: UPDATE PARAMETER VCA-VELOCITY-SENSITIVITY TO 2) Tj T* (    Selected group 0) Tj T* (CC: UPDATE PARAMETER VCF-VELOCITY-SENSITIVITY TO 2) Tj T* (CC: UPDATE PARAMETER VCF-VELOCITY-SENSITIVITY TO 1) Tj T* (    Selected group 2) Tj T* (CC: UPDATE PARAMETER MG-OSC TO 22) Tj T* (CC: UPDATE PARAMETER MG-OSC TO 23) Tj T* (CC: UPDATE PARAMETER DELAY-EFFECT-LEVEL TO 2) Tj T* (CC: UPDATE PARAMETER DELAY-EFFECT-LEVEL TO 3) Tj T* (CC: UPDATE PARAMETER DELAY-EFFECT-LEVEL TO 4) Tj T* (CC: UPDATE PARAMETER DELAY-EFFECT-LEVEL TO 5) Tj T* (>) Tj ( help) Tj T* (Help:) Tj T* (  help     Displays this help.) Tj T* (  quit     Stops this midi application.) Tj T* (>) Tj ( quit) Tj T*  T* ($) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 341.8236 cm
+q
+BT 1 0 0 1 0 3.5 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Obtaining the sources) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 323.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (1- create a directory where to clone it, since dependencies will be cloned in brother directories.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 290.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 24 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F3 10 Tf 12 TL ($ mkdir src ; cd src) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 270.6236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (2- clone the sources:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 237.4236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 24 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F3 10 Tf 12 TL ($ git clone git@framagit.org:pjb/midi-transform.git) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 217.4236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (Running in ccl:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 100.2236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 108 re B*
+Q
+q
+BT 1 0 0 1 0 86 Tm 12 TL /F3 10 Tf 0 0 0 rg (>) Tj ( \(ccl:chdir "src/midi-transform/"\)) Tj T* (>) Tj ( \(load "loader"\)) Tj T* (>) Tj ( \(com.informatimago.midi.transform:initialize\)) Tj T* (>) Tj ( \(com.informatimago.midi.transform:run) Tj T* (          :dw-8000-device-name "Korg DW-8000") Tj T* (          :dw-8000-channel 10) Tj T* (          :controller-device-name "VI61") Tj T* (          :controller-channel 10\)) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+ 
+endstream
+endobj
+33 0 obj
+<<
+/Length 4443
+>>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 729.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 26 Tm /F1 10 Tf 12 TL .208735 Tw (Internally, MIDI channels numbers go from 0 to 15, \(they're converted while parsing the the command line) Tj T* 0 Tw .567765 Tw (arguments\). So use 10 to indicate MIDI Channel 11, 0 for MIDI Channel 1. The above values are default) Tj T* 0 Tw (parameters, so you can run it with just:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 695.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 24 re B*
+Q
+q
+BT 1 0 0 1 0 2 Tm 12 TL /F3 10 Tf 0 0 0 rg (>) Tj ( \(com.informatimago.midi.transform:run\)) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 663.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 14 Tm /F1 10 Tf 12 TL 2.056654 Tw (if you configure your devices on the channel 11 and name them like this in the "Audio MIDI Setup") Tj T* 0 Tw (application.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 630.8236 cm
+q
+BT 1 0 0 1 0 3.5 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Compiling the binary program) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 573.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 48 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 26 Tm /F3 10 Tf 12 TL ($ make help) Tj T* ($ make) Tj T* ($ ./midi-transform --help) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 553.6236 cm
+q
+BT 1 0 0 1 0 2 Tm 12 TL /F1 10 Tf 0 0 0 rg (The midi-transform program can be installed in ) Tj /F3 10 Tf 0 0 0 rg (/usr/local/bin) Tj /F1 10 Tf 0 0 0 rg ( with:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 520.4236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 24 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F3 10 Tf 12 TL ($ make install) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 500.4236 cm
+q
+BT 1 0 0 1 0 2 Tm 12 TL /F1 10 Tf 0 0 0 rg (or in some other directory by specifying the ) Tj /F3 10 Tf 0 0 0 rg (PREFIX) Tj /F1 10 Tf 0 0 0 rg (:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 467.2236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 24 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F3 10 Tf 12 TL ($ make PREFIX=/opt/local install) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 447.2236 cm
+q
+BT 1 0 0 1 0 2 Tm 12 TL /F1 10 Tf 0 0 0 rg (will install ) Tj /F3 10 Tf 0 0 0 rg (/opt/local/bin/midi-transform) Tj /F1 10 Tf 0 0 0 rg (.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 414.2236 cm
+q
+BT 1 0 0 1 0 3.5 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (TODO) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 213.0236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 696 192 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 170 Tm /F3 10 Tf 12 TL (RC:) Tj T* (    Program down 1) Tj T* (    Not implemented yet) Tj T* (RC: 4194336: \(MIDI:CONTROL-CHANGE-MESSAGE :TIME 480044063399527 :STATUS 186 :CHANNEL 10 :CONTROLLER 75 :VALUE 0\)) Tj T* (RC: 4194336: CC 75 0) Tj T* (RC: 4194336: \(MIDI:CONTROL-CHANGE-MESSAGE :TIME 480046353908195 :STATUS 186 :CHANNEL 10 :CONTROLLER 74 :VALUE 127\)) Tj T* (RC: 4194336: CC 74 127) Tj T* (    Program up 1) Tj T* (    Not implemented yet) Tj T* (RC: 4194336: \(MIDI:CONTROL-CHANGE-MESSAGE :TIME 480046568972751 :STATUS 186 :CHANNEL 10 :CONTROLLER 74 :VALUE 0\)) Tj T* (RC: 4194336: CC 74 0) Tj T* (RC: 4194336: \(MIDI:CONTROL-CHANGE-MESSAGE :TIME 480049600834620 :STATUS 186 :CHANNEL 10 :CONTROLLER 0 :VALUE 0\)) Tj T* (RC: 4194336: CC 0 0) Tj T* (    Program change 32) Tj T* (    Not implemented yet) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 180.0236 cm
+q
+BT 1 0 0 1 0 3.5 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (License) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 162.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (It's distribued under the GNU AFFERO GENERAL PUBLIC LICENSE, Version 3.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 156.0236 cm
+Q
+q
+1 0 0 1 62.69291 102.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 0 2 Tm  T* ET
+q
+1 0 0 1 20 42 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (Copyright Pascal J. Bourguignon 2017 - 2017) Tj T* ET
+Q
+Q
+q
+1 0 0 1 20 0 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 26 Tm /F1 10 Tf 12 TL 1.356457 Tw (This program is free software: you can redistribute it and/or modify it under the terms of the GNU) Tj T* 0 Tw .570651 Tw (Affero General Public License as published by the Free Software Foundation, either version 3 of the) Tj T* 0 Tw (License, or \(at your option\) any later version.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+ 
+endstream
+endobj
+34 0 obj
+<<
+/Length 824
+>>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 699.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 0 2 Tm  T* ET
+q
+1 0 0 1 20 30 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 26 Tm /F1 10 Tf 12 TL .192485 Tw (This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without) Tj T* 0 Tw 1.596342 Tw (even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.) Tj T* 0 Tw (See the GNU Affero General Public License for more details.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 20 0 cm
+q
+BT 1 0 0 1 0 14 Tm .362485 Tw 12 TL /F1 10 Tf 0 0 0 rg (You should have received a copy of the GNU Affero General Public License along with this program.) Tj T* 0 Tw (If not, see <) Tj 0 0 .501961 rg (http://www.gnu.org/licenses/) Tj 0 0 0 rg (>) Tj (.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 699.0236 cm
+Q
+ 
+endstream
+endobj
+35 0 obj
+<<
+/Nums [ 0 36 0 R 1 37 0 R 2 38 0 R 3 39 0 R 4 40 0 R ]
+>>
+endobj
+36 0 obj
+<<
+/S /D /St 1
+>>
+endobj
+37 0 obj
+<<
+/S /D /St 2
+>>
+endobj
+38 0 obj
+<<
+/S /D /St 3
+>>
+endobj
+39 0 obj
+<<
+/S /D /St 4
+>>
+endobj
+40 0 obj
+<<
+/S /D /St 5
+>>
+endobj
+xref
+0 41
+0000000000 65535 f 
+0000000073 00000 n 
+0000000124 00000 n 
+0000000231 00000 n 
+0000000343 00000 n 
+0000000538 00000 n 
+0000000734 00000 n 
+0000000929 00000 n 
+0000001164 00000 n 
+0000001269 00000 n 
+0000001474 00000 n 
+0000001680 00000 n 
+0000001886 00000 n 
+0000002067 00000 n 
+0000002292 00000 n 
+0000002398 00000 n 
+0000002670 00000 n 
+0000002745 00000 n 
+0000002893 00000 n 
+0000003008 00000 n 
+0000003157 00000 n 
+0000003301 00000 n 
+0000003459 00000 n 
+0000003567 00000 n 
+0000003676 00000 n 
+0000003798 00000 n 
+0000003934 00000 n 
+0000004077 00000 n 
+0000004196 00000 n 
+0000004305 00000 n 
+0000004392 00000 n 
+0000013255 00000 n 
+0000016777 00000 n 
+0000020053 00000 n 
+0000024548 00000 n 
+0000025423 00000 n 
+0000025500 00000 n 
+0000025534 00000 n 
+0000025568 00000 n 
+0000025602 00000 n 
+0000025636 00000 n 
+trailer
+<<
+/ID 
+[<87282e5d5277b37b90c7e88ea7c888ae><87282e5d5277b37b90c7e88ea7c888ae>]
+% ReportLab generated PDF document -- digest (http://www.reportlab.com)
+
+/Info 15 0 R
+/Root 14 0 R
+/Size 41
+>>
+startxref
+25670
+%%EOF

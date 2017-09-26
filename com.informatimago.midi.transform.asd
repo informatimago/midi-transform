@@ -41,9 +41,11 @@
   :license "AGPL3"
   :depends-on ("cffi"
                "midi"
+               "trivial-timers"
                "com.informatimago.macosx.coremidi"
                "com.informatimago.macosx.coremidi.midi"
-               "com.informatimago.common-lisp.cesarum")
+               "com.informatimago.common-lisp.cesarum"
+               "com.informatimago.common-lisp.interactive")
   :components ((:file "synthesizer")
                (:file "midi-application")
                (:file "parameter-map-compiler" :depends-on ("synthesizer"))

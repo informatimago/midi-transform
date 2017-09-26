@@ -35,11 +35,17 @@
 (defpackage "COM.INFORMATIMAGO.MIDI.PARAMETER-MAP-COMPILER"
   (:use "COMMON-LISP"
         "COM.INFORMATIMAGO.MIDI.ABSTRACT-SYNTHESIZER")
-  (:export "SELECT" "GROUP" "MAP-CC"
+  (:export "SELECT" "GROUP" "MAP"
            "COMBINATION" "SELECTION"
            "CONTINUOUS" "MOMENTARY"
-           "TOGGLE"
-           "COMPILE-MAP"  "DISPATCH"))
+           "TOGGLE" "PROGRAM-CHANGE"
+           "COMPILE-MAP"  "DISPATCH"
+
+           ;; internal parameter names:
+           "PAGE" "BANK"
+           "PROGRAM-CHANGE"
+           "PROGRAM-UP"
+           "PROGRAM-DOWN"))
 (in-package "COM.INFORMATIMAGO.MIDI.PARAMETER-MAP-COMPILER")
 
 
@@ -70,7 +76,7 @@ momentary -> ignore 0 ; action on 127: (<group-name> <value>)
 actions for select:
   the computed value is used to select the group of same name and value.
 
-actions for map-cc:
+actions for map:
   - for continuous controllers, compute (truncate (- (clip cc-min cc-value cc-max) cc-min)
                                                   (- p-max p-min -1))
 
@@ -86,6 +92,8 @@ actions for map-cc:
 
   - for combine, we nee to keep a list of the current value of sub-controllers,
     and when one value change, compute the sum before setting the parameter.
+
+  - for range controller such as program-change, maps the range.
 
 |#
 #|
@@ -298,7 +306,8 @@ actions for map-cc:
 
 (defmethod (setf cell-input) (cc-val (self continuous-controller))
   (symbol-macrolet ((pr-val (cell-output self)))
-    (With-slots (cc-min cc-max pr-min pr-max) self
+    ;; TODO: move pr-min pr-max to the parameter instances
+    (with-slots (cc-min cc-max pr-min pr-max) self
       (setf pr-val
             (round (+ (/ (* (- pr-max pr-min) (- (clip cc-min cc-val cc-max) cc-min))
                          (- cc-max cc-min))
@@ -350,6 +359,36 @@ actions for map-cc:
       (unless (zerop cc-val) (setf pr-val on)))))
 
 
+;;; ----------------------------------------
+;;;
+(defclass program-change-controller (controller)
+  ((program-min :initarg :program-min :reader controller-program-min)
+   (program-max :initarg :program-max :reader controller-program-max)
+   (pr-min :initarg :pr-min :reader controller-parameter-min)
+   (pr-max :initarg :pr-max :reader controller-parameter-max))
+  (:default-initargs :code 0))
+
+(defmethod print-object ((self program-change-controller) stream)
+  (print-unreadable-object (self stream :type t :identity t)
+    (with-slots (program-min program-max) self
+      (format stream "~@{~S~^ ~}"
+              :downstream-cells-count (length (downstream-cells self))
+              :cell-output (cell-output self)
+              :program-min program-min :program-max program-max)))
+  self)
+
+
+(defmethod (setf cell-input) (program-val (self program-change-controller))
+  (symbol-macrolet ((pr-val (cell-output self)))
+    ;; TODO: move pr-min pr-max to the parameter instances
+    (with-slots (program-min program-max pr-min pr-max) self
+      (setf pr-val
+            (round (+ (/ (* (- pr-max pr-min) (- (clip program-min program-val program-max)
+                                                 program-min))
+                         (- program-max program-min))
+                      pr-min))))))
+
+
 
 #|
 
@@ -375,11 +414,12 @@ Grammar:
 ----------------------------------------
 
 map            ::= <item>… .
-item           ::= <select> | <map-cc> .
+item           ::= <select> | <map>  .
 select         ::= (SELECT <controller> <group>…) .
-map-cc         ::= (MAP-CC <parameter> <controller>) .
+map            ::= (MAP <parameter> <controller>) .
 parameter      ::= (<parameter-name> <pr-min> <pr-max>) | <parameter-name> .
-controller     ::= <toggle> | <momentary> | <continuous> | <selection> | <combination> .
+controller     ::= <pc> | <toggle> | <momentary> | <continuous> | <selection> | <combination> .
+pc             ::= (PROGRAM-CHANGE <program-min> [<program-max>])
 toggle         ::= ((TOGGLE     <cc>) [<pr-off-val] <pr-on-val>) .
 momentary      ::= ((MOMENTARY  <cc>) <pr-on-val>) .
 continuous     ::= ((CONTINUOUS <cc>) <cc-min> <cc-max>) .
@@ -395,6 +435,8 @@ pr-max         ::= integer .
 cc             ::= integer .
 cc-min         ::= integer .
 cc-max         ::= integer .
+program-min    ::= integer .
+program-max    ::= integer .
 
 
 
@@ -404,7 +446,7 @@ Compilation:
 All the parameter-names in the source must be collected first to build
 a table of interned argument instances.
 
-All the MAP-CC in a given <item>… list are collected into a single dispatch.
+All the MAP in a given <item>… list are collected into a single dispatch.
 
 Each select will generate an additionnal set of dispatch (one per
 group), one of them being active, along with the select controller.
@@ -420,12 +462,15 @@ group), one of them being active, along with the select controller.
 
 ;;; ----------------------------------------
 ;;;
-(defclass map-cc ()
-  ((table   :initform (make-hash-table)
+(defclass compiled-map ()
+  ((cc-map  :initform (make-hash-table)
             :reader map-cc-table
             :documentation "Maps a CC number to a list of controllers.")
+   (pc-map  :initform (make-hash-table)
+            :reader map-pc-table
+            :documentation "Maps a PC number to a list of controllers.")
    (selects :initform '()
-            :reader map-cc-selects
+            :reader map-selects
             :documentation "A list of SELECT instances.")))
 
 ;;; ----------------------------------------
@@ -455,7 +500,7 @@ group), one of them being active, along with the select controller.
   (setf (slot-value self 'selector) selector)
   (link-cells selector self))
 
-(defmethod add-group ((self select) (group map-cc))
+(defmethod add-group ((self select) (group compiled-map))
   (setf (slot-value self 'groups) (concatenate 'vector (select-groups self) (list group)))
   (unless (slot-boundp self 'selected-group)
     (select-group self 0)))
@@ -467,19 +512,19 @@ group), one of them being active, along with the select controller.
 
 
 ;;; ----------------------------------------
-;;; map-cc
+;;; compiled-map
 
-(defmethod add-controller ((self map-cc) (cell cell))
+(defmethod add-controller ((self compiled-map) (cell cell))
   (dolist (controller (controllers cell))
     (push controller (gethash (controller-code controller) (map-cc-table self) '()))))
 
-(defmethod add-select ((self map-cc) (select select))
+(defmethod add-select ((self compiled-map) (select select))
   (push select (slot-value self 'selects)))
 
-(defmethod dispatch ((self map-cc) cc value)
+(defmethod dispatch ((self compiled-map) cc value)
   (dolist (controller (gethash cc (map-cc-table self)))
     (dispatch controller cc value))
-  (dolist (select (map-cc-selects self))
+  (dolist (select (map-selects self))
     (dispatch select cc value)))
 
 
@@ -492,19 +537,21 @@ group), one of them being active, along with the select controller.
     :for expression :in map
     :for op := (first expression)
     :do (case op
-          (select  (destructuring-bind (parameter-spec controller &rest groups) (rest expression)
-                     (declare (ignore controller))
-                     (setf parameters
-                           (cons (bare-parameter parameter-spec)
-                                 (nconc parameters
-                                        (mapcan (lambda (group)
-                                                  (unless (eq 'group (first group))
-                                                    (error "Invalid group ~S" group))
-                                                  (collect-parameters (rest group)))
-                                                groups))))))
-          (map-cc  (push (bare-parameter (second expression))
-                         parameters))
-          (otherwise (error "Invalid operator in map-cc: ~S" op)))
+          ((select)
+           (destructuring-bind (parameter-spec controller &rest groups) (rest expression)
+             (declare (ignore controller))
+             (setf parameters
+                   (cons (bare-parameter parameter-spec)
+                         (nconc parameters
+                                (mapcan (lambda (group)
+                                          (unless (eq 'group (first group))
+                                            (error "Invalid group ~S" group))
+                                          (collect-parameters (rest group)))
+                                        groups))))))
+          ((map)
+           (push (bare-parameter (second expression))
+                 parameters))
+          (otherwise (error "Invalid operator in map: ~S" op)))
     :finally (return parameters)))
 
 (defun build-argument-table (map parameters)
@@ -536,6 +583,17 @@ group), one of them being active, along with the select controller.
            (let ((controller (make-instance op1)))
              (dolist (subexpression (rest expression) controller)
                (add-controller controller (compile-controller-expression subexpression arguments)))))
+          ((program-change)
+           ;; pc             ::= (PROGRAM-CHANGE <program-min> [<program-max>])
+           (destructuring-bind (op program-min program-max) expression
+             (declare (ignore op))
+             (check-type program-min (integer 0 127))
+             (check-type program-max (integer 0 127))
+             (make-instance 'program-change-controller
+                            :program-min program-min
+                            :program-max program-max
+                            :pr-min pr-min
+                            :pr-max pr-max)))
           (otherwise
            (error "Unexpected token ~S in controller expression ~S" op1 expression)))
         (destructuring-bind (op2 cc) op1
@@ -575,11 +633,12 @@ group), one of them being active, along with the select controller.
           (add-group select (compile-items items arguments))))
       select)))
 
-(defun compile-map-cc-expression (expression arguments)
+(defun compile-map-expression (expression arguments)
   (destructuring-bind (op parameter-spec controller-expression) expression
-    (assert (eq 'map-cc op))
+    (assert (eq 'map op))
     (if (listp parameter-spec)
         (destructuring-bind (pr-name pr-min pr-max) parameter-spec
+          ;; TODO: Move back pr-min pr-max to the parameter, and let the parameter instances compute their new value.
           (let ((controller (compile-controller-expression controller-expression arguments pr-min pr-max))
                 (argument   (find-argument pr-name arguments)))
             (link-cells controller argument)
@@ -591,13 +650,13 @@ group), one of them being active, along with the select controller.
 
 (defun compile-items (items arguments)
   (loop
-    :with map := (make-instance 'map-cc)
+    :with map := (make-instance 'compiled-map)
     :for expression :in items
     :for op := (first expression)
     :do (case op
           (select (add-select     map (compile-select-expression expression arguments)))
-          (map-cc (add-controller map (compile-map-cc-expression expression arguments)))
-          (otherwise (error "Invalid operator in map-cc: ~S" op)))
+          (map    (add-controller map (compile-map-expression    expression arguments)))
+          (otherwise (error "Invalid operator in map: ~S" op)))
     :finally (return map)))
 
 (defun compile-map (items parameters)

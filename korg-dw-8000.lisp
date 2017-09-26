@@ -35,11 +35,17 @@
 (defpackage "COM.INFORMATIMAGO.MIDI.KORG.DW-8000"
   (:use "COMMON-LISP"
         "MIDI"
+        "TRIVIAL-TIMERS"
+        "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.QUEUE"
         "COM.INFORMATIMAGO.MIDI.ABSTRACT-SYNTHESIZER"
         "COM.INFORMATIMAGO.MIDI.ABSTRACT-MIDI-APPLICATION"
-        "COM.INFORMATIMAGO.MIDI.KORG")
+        "COM.INFORMATIMAGO.MIDI.KORG"
+        "COM.INFORMATIMAGO.MIDI.PARAMETER-MAP-COMPILER")
   (:import-from "COM.INFORMATIMAGO.MACOSX.COREMIDI"
-                "SEND-SYSEX" "SYSEX-REQUEST")
+                "SEND-SYSEX" "SYSEX-REQUEST"
+                "SEND" "CURRENT-HOST-TIME")
+  (:import-from "COM.INFORMATIMAGO.MACOSX.COREMIDI.MIDI"
+                "PACKET-LIST-FROM-MESSAGES")
   (:export
    "CHANNEL"
    "PROGRAM-NUMBER"
@@ -66,7 +72,7 @@
    "PARSE-SYSTEM-EXCLUSIVE-MESSAGE"
    "SYSEX"
    "DEVICE-ID-REQUEST"
-   "PROGRAM-PARAMETER-REQUEST"
+   "DATA-SAVE-REQUEST"
    "WRITE-REQUEST"
    "PARAMETER-CHANGE-REQUEST"
    "DATA-DUMP"
@@ -127,8 +133,13 @@
    "AFTERTOUCH-OSC-MG"
    "AFTERTOUCH-VCF"
    "AFTERTOUCH-VCA"
-   ;; internal parameter:
+   ;; internal parameters:
    "PAGE"
+   "BANK"
+   "PROGRAM-CHANGE"
+   "PROGRAM-UP"
+   "PROGRAM-DOWN"
+
 
    "DW-8000-PARAMETER" "PARAMETER-OFFSET"
    "DW-8000-PROGRAM"
@@ -144,22 +155,24 @@
    "PARAMETER-VALUE"
    "PROGRAM-PARAMETER-VALUES"
    "SYNTHESIZER-PARAMETERS"
+   "RECEIVE-SYSEX-MESSAGE"
    ))
 (in-package "COM.INFORMATIMAGO.MIDI.KORG.DW-8000")
 
+(deftype channel          () '(integer 0 15))
 (deftype program-number   () '(integer 0 63))
 (deftype parameter-offset () '(integer 0 63))
 (deftype parameter-value  () '(integer 0 63))
 
 
 (defun device-id (channel device-id)
-  `(device-id ,channel ,device-id))
+  (print `(device-id ,channel ,device-id)))
 (defun received-data-dump (channel device-id parameters)
-  `(data-dump ,channel ,device-id ,parameters))
+  (print `(data-dump ,channel ,device-id ,parameters)))
 (defun write-completed-status (channel device-id)
-  `(write-completed-status ,channel ,device-id))
+  (print `(write-completed-status ,channel ,device-id)))
 (defun write-error-status     (channel device-id)
-  `(write-error-status ,channel ,device-id))
+  (print `(write-error-status ,channel ,device-id)))
 
 (defun parse-system-exclusive-message (bytes)
   (let ((s 0)
@@ -167,8 +180,13 @@
     (flet ((eat (code)
              (if (= code (aref bytes s))
                  (incf s)
-                 (error "Unexpected byte in sysex at position ~D, got ~2,'0X, expected ~2,'0X."
-                        s (aref bytes s) code))))
+                 (progn
+                   (cerror "Skip until expected ~2*~2,'0X byte is found."
+                           "Unexpected byte in sysex at position ~D, got ~2,'0X, expected ~2,'0X."
+                           s (aref bytes s) code)
+                   (loop :while (and (< s (length bytes))
+                                     (/= code (aref bytes s)))
+                         :do (incf s))))))
       (eat +sysex+)
       (unless (= +korg-id+ (aref bytes s))
         (return-from parse-system-exclusive-message nil))
@@ -197,15 +215,22 @@
                                       :for p := (aref bytes s)
                                       :for v := (aref bytes (1+ s))
                                       :for parameter := (find-parameter p)
-                                      :do (unless parameter
-                                            (error "Unkown parameter offset ~D in data dump." p))
-                                          (if (<= (parameter-min parameter) v (parameter-max parameter))
-                                              (push (list (parameter-name parameter) v) parameters)
-                                              (error "Value ~D of parameter ~A is out of expected range [~D,~D] in data dump."
-                                                     v
-                                                     (parameter-name parameter)
-                                                     (parameter-min parameter)
-                                                     (parameter-max parameter)))
+                                      ;; :do (if parameter
+                                      ;;         (print (list p '/ (parameter-name parameter) (parameter-min parameter) '<= v '<= (parameter-max parameter)))
+                                      ;;         (print `(unknown parameter ,p value ,v)))
+                                      :do (if parameter
+                                              (if (<= (parameter-min parameter) v (parameter-max parameter))
+                                                  (push (list (parameter-offset parameter) v) parameters)
+                                                  (progn
+                                                    (cerror "Set parameter ~@1*~A to minimum value ~D"
+                                                            "Value ~D of parameter ~A is out of expected range [~D,~D] in data dump."
+                                                            v
+                                                            (parameter-name parameter)
+                                                            (parameter-min parameter)
+                                                            (parameter-max parameter))
+                                                    (push (list (parameter-offset parameter) (parameter-min parameter)) parameters)))
+                                              (cerror "Ignore unknown parameter ~D"
+                                                      "Unknown parameter offset ~D in data dump." p))
                                           (incf s 2)
                                       :finally (return parameters))))
                     (eat +eox+)
@@ -222,8 +247,23 @@
                   s format)))))))
 
 
+(defmacro sysex (&body expressions)
+  (let ((i -1)
+        (vvar (gensym)))
+    `(let ((,vvar (make-array ,(+ 2 (length expressions)) :element-type '(unsigned-byte 8))))
+       (setf (aref ,vvar ,(incf i)) +sysex+)
+       (setf ,@(mapcan (lambda (e) `((aref ,vvar ,(incf i)) ,e))
+                       expressions))
+       (setf (aref ,vvar ,(incf i)) +eox+)
+       ,vvar)))
 
-(defun program-parameter-request (channel)
+(defun device-id-request (channel)
+  (check-type channel channel)
+  (sysex
+    +korg-id+
+    (logior +device-id-request+ channel)))
+
+(defun data-save-request (channel)
   (check-type channel channel)
   (sysex
     +korg-id+
@@ -320,10 +360,10 @@
      (setf (gethash ',name *parameters*)
            (setf (gethash ,offset *parameters*)
                  (make-instance 'dw-8000-parameter :name ',name
-                                                  :offset ,offset
-                                                  :min ,min
-                                                  :max ,max
-                                                  :values ',values)))
+                                                   :offset ,offset
+                                                   :min ,min
+                                                   :max ,max
+                                                   :values ',values)))
      (defconstant ,(scat '+ name '+) ,offset)
      (deftype ,name () '(integer ,min ,max))
      ',name))
@@ -433,47 +473,108 @@
 (defgeneric program-parameter-values (program)
   (:documentation "The dw-8000-program-parameter indirect values of the program."))
 
+(defconstant +dw-8000-value-vector-size+ 51)
+
+(defun make-dw-8000-parameter-vector ()
+  (let ((program  (make-array +dw-8000-value-vector-size+
+                              :element-type '(or null dw-8000-parameter)
+                              :initial-element nil)))
+    (maphash (lambda (k parameter)
+               (declare (ignore k))
+               (setf (aref program (parameter-offset parameter)) parameter))
+             *parameters*)
+    program))
+
+(defun make-dw-8000-value-vector (parameters)
+  (map-into (make-array +dw-8000-value-vector-size+
+                        :element-type '(unsigned-byte 8))
+            (function parameter-min) parameters))
+
+(defmethod initialize-instance :after ((program dw-8000-program) &key &allow-other-keys)
+  (setf (slot-value program 'values) (make-dw-8000-value-vector (program-parameters program))))
+
+
 (defmethod program-parameters ((program dw-8000-program))
   (unless (slot-boundp program 'parameters)
-    (let ((result (make-array 51)))
-      (maphash (lambda (k parameter)
-                 (declare (ignore k))
-                 (setf (aref result (parameter-offset parameter)) parameter))
-               *parameters*)
-      (setf (slot-value program 'parameters) result)))
+    (setf (slot-value program 'parameters) (make-dw-8000-parameter-vector)))
   (slot-value program 'parameters))
 
 (defmethod program-value-for-parameter ((program dw-8000-program) (parameter dw-8000-parameter))
   (aref (program-values program) (parameter-offset parameter)))
 
-(defun create-minimal-parameter-values (parameters)
-  (map-into (make-array 51 :element-type '(unsigned-byte 8))
-            (function parameter-min) parameters))
+(defmethod (setf program-values) ((values vector) (program dw-8000-program))
+  (replace (program-values program) values))
 
-(defmethod initialize-instance :after ((program dw-8000-program) &key &allow-other-keys)
-  (setf (slot-value program 'values) (create-minimal-parameter-values (program-parameters program))))
-
-
+(defmethod (setf program-values) ((values cons) (program dw-8000-program))
+  (loop
+    :with program-values := (program-values program)
+    :for (name value) :in values
+    :for parameter := (find-parameter name)
+    :for offset    := (when parameter (parameter-offset parameter))
+    :when offset
+      :do (setf (aref program-values offset) value)
+    :finally (return program-values)))
 
 ;;;---------------------------------------------------------------------
 
 (defclass dw-8000-synthesizer (synthesizer)
-  ((program-parameters :reader synthesizer-program-parameters
+  ((model              :initform "Korg DW-8000 or EX-8000" :reader synthesizer-model)
+
+   (program-parameters :reader synthesizer-program-parameters
                        :reader synthesizer-parameters)
-   (parameter-page     :initform 0 :accessor synthesizer-parameter-page)))
+   (parameter-page     :initform 0   :accessor synthesizer-parameter-page
+                       :documentation "Internal program-parameters page.")
+   (program-bank       :initform 0   :accessor synthesizer-program-bank
+                       :documentation "Internal program-parameters program bank.")
+   (program-bank-msb   :initform 0   :accessor synthesizer-program-bank-msb
+                       :documentation "MIDI Program Bank MSB (CC #0)")
+   (program-bank-lsb   :initform 0   :accessor synthesizer-program-bank-lsb
+                       :documentation "MIDI Program Bank MSB (CC #20)")
+   (program-number     :initform 0   :accessor synthesizer-program-number
+                       :documentation "MIDI Program Change number.")
+
+   (timer              :initform nil :accessor synthesizer-timer)
+   (state              :initform nil :accessor synthesizer-state)))
 
 (defmethod initialize-instance :after ((self dw-8000-synthesizer) &key &allow-other-keys)
-  (setf (synthesizer-current-program self) (make-instance 'dw-8000-program :name "Default"))
-  (get-current-program self))
+  (setf (synthesizer-current-program self) (make-instance 'dw-8000-program :name "Default")))
 
-(defmethod get-current-program ((self dw-8000-synthesizer) &optional on-completion)
-  #|
-  - send a SysEx request to get the program parameters.
-  - wait for an answer.
-  - fill the current-program with the received parameters.
-  |#
-  (when on-completion
-    (funcall on-completion self :error :not-implemented-yet)))
+
+(defmethod bad-device-id ((synthesizer dw-8000-synthesizer) device-id)
+  (if (eql :timeout device-id)
+      (format *error-output* "Timeout on device-id request with synthesizer at channel ~A.~%"
+              (synthesizer-channel synthesizer))
+      (format *error-output* "Synthesizer at channel ~A is not a ~A, but has a device ID: ~D.~%"
+              (synthesizer-channel synthesizer)
+              (synthesizer-model synthesizer)
+              device-id)))
+
+(defmethod cannot-fetch-program-parameters ((synthesizer dw-8000-synthesizer) &optional timeout)
+  (format *error-output* "~:[Error~;Timeout~] on fetching program parameters from ~A synthesizer at channel ~A"
+          timeout
+          (synthesizer-model synthesizer)
+          (synthesizer-channel synthesizer)))
+
+(defmethod write-error ((synthesizer dw-8000-synthesizer) &optional timeout)
+  (format *error-output* "~:[Error~;Timeout~] while writing program on ~A synthesizer at channel ~A"
+          timeout
+          (synthesizer-model synthesizer)
+          (synthesizer-channel synthesizer)))
+
+
+(defmethod set-timeout ((synthesizer dw-8000-synthesizer) timeout)
+  (flet ((timeout () (timeout synthesizer)))
+    (let ((timer (synthesizer-timer synthesizer)))
+      (unless timer
+        (setf timer (make-timer (function timeout)
+                                :name "DW-8000-synthesizer timer"))
+        (setf (synthesizer-timer synthesizer) timer))
+      (schedule-timer timer timeout :absolute-p nil))))
+
+(defmethod cancel-timeout ((synthesizer dw-8000-synthesizer))
+  (let ((timer (synthesizer-timer synthesizer)))
+    (when timer
+      (unschedule-timer timer))))
 
 
 ;;;---------------------------------------------------------------------
@@ -491,6 +592,9 @@
 (defmethod parameter-name ((parameter dw-8000-program-parameter))
   (parameter-name (aref (program-parameters (parameter-program parameter))
                         (parameter-offset parameter))))
+
+(defmethod parameter-min ((parameter null))
+  0)
 
 (defmethod parameter-min ((parameter dw-8000-program-parameter))
   (parameter-min (aref (program-parameters (parameter-program parameter))
@@ -519,12 +623,7 @@
                (format t "~&CC: (PAGE ~A) UPDATE PARAMETER ~A TO ~A~%"
                        (synthesizer-parameter-page synthesizer)
                        (parameter-name parameter) value)
-               (send-sysex (sysex-request
-                            (synthesizer-destination synthesizer)
-                            (parameter-change-request (synthesizer-channel synthesizer)
-                                                      (parameter-offset parameter)
-                                                      value)
-                            nil nil))))
+               (send-parameter-change-request synthesizer parameter value)))
            (not-tracking (next)
              (setf (parameter-tracking parameter) next)
              (format t "~&CC: (PAGE ~A) PARAMETER ~A NOT PASSED THROUGH ~A YET (KNOB AT ~A)~%"
@@ -557,6 +656,146 @@
     (program-parameters program)))
 
 
+;;----------------------------------------------------------------------
+
+;; send-device-id-request  -> expecting-device-id -> device-id
+;; write-request -> expecting-write-status -> write-status
+;; data-save-request -> expecting-data-dump -> data-dump
+;; data-load-request ->|
+;; parameter-change ->|
+;; program-change ->|
+
+(defmethod timeout ((synthesizer dw-8000-synthesizer))
+  (case (synthesizer-state synthesizer)
+    (:expecting-device-id    (bad-device-id                   synthesizer :timeout))
+    (:expecting-data-dump    (cannot-fetch-program-parameters synthesizer :timeout))
+    (:expecting-write-status (write-error                     synthesizer :timeout))
+    (otherwise                #|spurious timeout|#))
+  (setf (synthesizer-state synthesizer) nil))
+
+(defmethod receive-sysex-message ((synthesizer dw-8000-synthesizer) message)
+  (cancel-timeout synthesizer)
+  (let ((parsed (handler-bind ((error (lambda (err)
+                                        (let ((restart (find-restart 'continue err)))
+                                          (when restart
+                                            (format *error-output* "~&RS: ~A -- continued.~%" err)
+                                            (invoke-restart restart))))))
+                  (parse-system-exclusive-message (message-data message)))))
+    (print parsed)
+    ;; let's ignore the channel.
+    (case (first parsed)
+      ((device-id)
+       (let ((device-id (third parsed)))
+         (unless (eql device-id +KORG-DW-8000+)
+           (bad-device-id synthesizer device-id)))
+       (case (synthesizer-state synthesizer)
+         ((nil :expecting-device-id) (enter-idle-state synthesizer))))
+      ((data-dump)
+       ;;- fill the current-program with the received parameters.
+       (assert (eql 3 (third parsed)))
+       (setf (program-values (synthesizer-current-program synthesizer)) (fourth parsed))
+       (case (synthesizer-state synthesizer)
+         ((nil :expecting-data-dump) (enter-idle-state synthesizer))))
+      ((write-error-status)
+       (write-error synthesizer)
+       (case (synthesizer-state synthesizer)
+         ((nil :expecting-write-status) (enter-idle-state synthesizer))))
+      ((write-completed-status)
+       (case (synthesizer-state synthesizer)
+         ((nil :expecting-write-status) (enter-idle-state synthesizer))))
+      (otherwise
+       (case (synthesizer-state synthesizer)
+         ((nil)  (enter-idle-state synthesizer)))))))
+
+(defmethod check-state ((synthesizer dw-8000-synthesizer))
+  (unless (null (synthesizer-state synthesizer))
+    (if (or (null (synthesizer-timer synthesizer))
+            (not (timer-scheduled-p (synthesizer-timer synthesizer))))
+        (setf (synthesizer-state synthesizer) nil)
+        (error "Invalid synthesizer state ~A" (synthesizer-state synthesizer)))))
+
+(defmethod send-device-id-request ((synthesizer dw-8000-synthesizer))
+  (check-state synthesizer)
+  (send-sysex (sysex-request
+               (synthesizer-destination synthesizer)
+               (device-id-request (synthesizer-channel synthesizer))
+               nil nil))
+  (setf (synthesizer-state synthesizer) :expecting-device-id)
+  (set-timeout synthesizer 5))
+
+(defmethod send-data-save-request ((synthesizer dw-8000-synthesizer))
+  (check-state synthesizer)
+  (send-sysex (sysex-request
+               (synthesizer-destination synthesizer)
+               (data-save-request (synthesizer-channel synthesizer))
+               nil nil))
+  (setf (synthesizer-state synthesizer) :expecting-data-dump)
+  (set-timeout synthesizer 15))
+
+(defmethod send-write-request ((synthesizer dw-8000-synthesizer) program-number)
+  (check-type program-number program-number)
+  (check-state synthesizer)
+  (send-sysex (sysex-request
+               (synthesizer-destination synthesizer)
+               (write-request (synthesizer-channel synthesizer) program-number)
+               nil nil))
+  (setf (synthesizer-state synthesizer) :expecting-write-status)
+  (set-timeout synthesizer 15))
+
+(defmethod send-data-load-request ((synthesizer dw-8000-synthesizer) parameters)
+  (check-state synthesizer)
+  (send-sysex (sysex-request
+               (synthesizer-destination synthesizer)
+               (data-dump (synthesizer-channel synthesizer) parameters)
+               nil nil))
+  (enter-idle-state synthesizer))
+
+(defmethod send-program-change ((synthesizer dw-8000-synthesizer) bank-msb bank-lsb program-number)
+  (declare (ignore bank-msb bank-lsb))
+  (check-type program-number program-number)
+  (check-state synthesizer)
+  (send (midi-output-port *midi-application*)
+        (synthesizer-destination synthesizer)
+        (packet-list-from-messages
+         (list (make-instance 'program-change-message :program program-number
+                                                      :time (current-host-time)
+                                                      :channel (synthesizer-channel synthesizer)))))
+  (enter-idle-state synthesizer))
+
+(defmethod send-parameter-change-request ((synthesizer dw-8000-synthesizer) (parameter dw-8000-program-parameter) value)
+  (check-state synthesizer)
+  (send-sysex (sysex-request
+               (synthesizer-destination synthesizer)
+               (parameter-change-request (synthesizer-channel synthesizer)
+                                         (parameter-offset parameter)
+                                         value)
+               nil nil))
+  (enter-idle-state synthesizer))
+
+;;----------------------------------------------------------------------
+
+(defmethod enter-idle-state ((synthesizer dw-8000-synthesizer))
+  (let ((queue (synthesizer-queue synthesizer)))
+    (unless (queue-empty-p queue)
+      (destructuring-bind (qsyn . thunk) (queue-dequeue queue)
+        (assert (eql qsyn synthesizer))
+        (funcall thunk)))))
+
+(defmethod enqueue* (synthesizer thunk)
+  ;; TODO: add lock.
+  (let ((queue (synthesizer-queue synthesizer)))
+    (if (queue-empty-p queue)
+        (funcall thunk)
+        (queue-enqueue queue (list :call synthesizer thunk)))))
+
+(defmacro enqueue (synthesizer &body body)
+  `(enqueue* ,synthesizer (lambda () ,@body)))
+
+(defmethod get-current-program ((synthesizer dw-8000-synthesizer))
+  (enqueue synthesizer (send-data-save-request synthesizer)))
+
+
+;;----------------------------------------------------------------------
 
 (defclass internal-parameter (parameter)
   ((update-function :initarg :update-function :reader parameter-update-function))
@@ -572,17 +811,95 @@
          'vector
          (program-parameter-values new-program)
          (vector
-          (make-instance
-           'internal-parameter
-           :name 'page
-           :max 2
-           :update-function (lambda (parameter value)
-                              (declare (ignore parameter))
-                              (format t "~&    Selected page ~A~%" value)
-                              (setf (synthesizer-parameter-page synthesizer) value)
-                              (loop :for parameter
-                                      :across (synthesizer-program-parameters synthesizer)
-                                    :do (setf (parameter-tracking parameter) nil))))))))
+
+          (make-instance 'internal-parameter
+                         :name 'page
+                         :max 2
+                         :update-function (lambda (parameter value)
+                                            (declare (ignore parameter))
+                                            (format t "~&    Selected control page ~A~%" value)
+                                            (setf (synthesizer-parameter-page synthesizer) value)
+                                            (loop :for parameter
+                                                    :across (synthesizer-program-parameters synthesizer)
+                                                  :do (setf (parameter-tracking parameter) nil))))
+          (make-instance 'internal-parameter
+                         :name 'bank
+                         :max 2
+                         :update-function (lambda (parameter value)
+                                            (declare (ignore parameter))
+                                            (format t "~&    Selected bank ~A~%" value)
+                                            (setf (synthesizer-program-bank synthesizer) value)))
+
+
+          (make-instance 'internal-parameter
+                         :name 'program-bank-msb
+                         :update-function (lambda (parameter value)
+                                            (declare (ignore parameter))
+                                            (format t "~&    Program bank MSB = ~A~%" value)
+                                            (setf (synthesizer-program-bank-msb synthesizer) value)))
+          (make-instance 'internal-parameter
+                         :name 'program-bank-lsb
+                         :update-function (lambda (parameter value)
+                                            (declare (ignore parameter))
+                                            (format t "~&    Program bank LSB = ~A~%" value)
+                                            (setf (synthesizer-program-bank-lsb synthesizer) value)))
+
+          (make-instance 'internal-parameter
+                         :name 'program-change
+                         :update-function (lambda (parameter value)
+                                            ;; (declare (ignore parameter))
+                                            (format t "~&    Program change parameter = ~A  value = ~A~%" parameter value)
+                                            (setf (synthesizer-program-number synthesizer) (mod value 64))
+                                            (enqueue synthesizer
+                                              (send-program-change synthesizer
+                                                                   (synthesizer-program-bank-msb synthesizer)
+                                                                   (synthesizer-program-bank-lsb synthesizer)
+                                                                   (synthesizer-program-number   synthesizer)))
+                                            (enqueue synthesizer (get-current-program synthesizer))))
+
+          (make-instance 'internal-parameter
+                         :name 'program-up
+                         :update-function (lambda (parameter value)
+                                            (declare (ignore parameter))
+                                            (format t "~&    Program up ~A~%" value)
+                                            (enqueue synthesizer
+                                              (setf (synthesizer-program-number synthesizer)
+                                                    (mod (1+ (synthesizer-program-number synthesizer))
+                                                         64))
+                                              (send-program-change synthesizer
+                                                                   (synthesizer-program-bank-msb synthesizer)
+                                                                   (synthesizer-program-bank-lsb synthesizer)
+                                                                   (synthesizer-program-number   synthesizer)))
+                                            (enqueue synthesizer (get-current-program synthesizer))))
+
+          (make-instance 'internal-parameter
+                         :name 'program-down
+                         :update-function (lambda (parameter value)
+                                            (declare (ignore parameter))
+                                            (format t "~&    Program down ~A~%" value)
+                                            (enqueue synthesizer
+                                              (setf (synthesizer-program-number synthesizer)
+                                                    (mod (1- (synthesizer-program-number synthesizer))
+                                                         64))
+                                              (send-program-change synthesizer
+                                                                   (synthesizer-program-bank-msb synthesizer)
+                                                                   (synthesizer-program-bank-lsb synthesizer)
+                                                                   (synthesizer-program-number   synthesizer)))
+                                            (enqueue synthesizer (get-current-program synthesizer))))))))
+
+
 
 
 ;;;; THE END ;;;;
+#-(and)
+(block try
+  (handler-bind ((error (lambda (err)
+                                (format t "~&~A~%" err)
+                                (let ((r (find-restart 'continue err)))
+                                  (if r
+                                      (invoke-restart r)
+                                      (return-from try))))))
+    (parse-system-exclusive-message #(240 66 58 3 64 1 0 15 3 0 0 31 0 11
+                                      15 0 4 0 2 62 24 4 1 0 25 0 9 31 19
+                                      17 24 0 0 20 17 20 16 18 0 0 21 0 0
+                                      0 2 0 5 0 0 4 22 14 0 3 0 0 247))))
