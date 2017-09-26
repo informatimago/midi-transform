@@ -1,6 +1,6 @@
 ;;;; -*- mode:lisp;coding:utf-8 -*-
 ;;;;**************************************************************************
-;;;;FILE:               dw8000.lisp
+;;;;FILE:               dw-8000.lisp
 ;;;;LANGUAGE:           Common-Lisp
 ;;;;SYSTEM:             Common-Lisp
 ;;;;USER-INTERFACE:     NONE
@@ -36,7 +36,8 @@
   (:use "COMMON-LISP"
         "MIDI"
         "COM.INFORMATIMAGO.MIDI.ABSTRACT-SYNTHESIZER"
-        "COM.INFORMATIMAGO.MIDI.ABSTRACT-MIDI-APPLICATION")
+        "COM.INFORMATIMAGO.MIDI.ABSTRACT-MIDI-APPLICATION"
+        "COM.INFORMATIMAGO.MIDI.KORG")
   (:import-from "COM.INFORMATIMAGO.MACOSX.COREMIDI"
                 "SEND-SYSEX" "SYSEX-REQUEST")
   (:export
@@ -52,12 +53,12 @@
    "+DEVICE-ID+"
    "+GENERAL-REQUEST+"
    "+DEVICE-ID-REQUEST+"
-   "+DATA-SAVE-REQUEST+"
-   "+DATA-DUMP+"
-   "+WRITE-REQUEST+"
+   "+PROGRAM-PARAMETER-REQUEST+"
+   "+PROGRAM-PARAMETER-DUMP+"
+   "+PROGRAM-WRITE-REQUEST+"
    "+WRITE-COMPLETED-STATUS+"
    "+WRITE-ERROR-STATUS+"
-   "+PARAMETER-CHANGE-REQUEST+"
+   "+PROGRAM-PARAMETER-CHANGE+"
    "DEVICE-ID"
    "DATA-DUMP"
    "WRITE-COMPLETED-STATUS"
@@ -65,7 +66,7 @@
    "PARSE-SYSTEM-EXCLUSIVE-MESSAGE"
    "SYSEX"
    "DEVICE-ID-REQUEST"
-   "DATA-DUMP-REQUEST"
+   "PROGRAM-PARAMETER-REQUEST"
    "WRITE-REQUEST"
    "PARAMETER-CHANGE-REQUEST"
    "DATA-DUMP"
@@ -146,39 +147,22 @@
    ))
 (in-package "COM.INFORMATIMAGO.MIDI.KORG.DW-8000")
 
-(deftype channel          () '(integer 0 15))
 (deftype program-number   () '(integer 0 63))
 (deftype parameter-offset () '(integer 0 63))
 (deftype parameter-value  () '(integer 0 63))
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
- (defconstant +sysex+                        #xf0)
- (defconstant +eox+                          #xf7)
-
- (defconstant +korg-id+                      #x42)
-
- (defconstant +korg-dw-8000+                 #x03)
- (defconstant +korg-ex-8000+                 #x03)
-
- (defconstant +device-id+                    3)
-
- (defconstant +general-request+              #x30)
- (defconstant +device-id-request+            #x40)
-
- (defconstant +data-save-request+            #x10)
- (defconstant +data-dump+                    #x40)
- (defconstant +write-request+                #x11)
- (defconstant +write-completed-status+       #x21)
- (defconstant +write-error-status+           #x22)
- (defconstant +parameter-change-request+     #x41))
 
 (defun device-id (channel device-id)
+  (warn "Not implemented yet!")
   `(device-id ,channel ,device-id))
 (defun data-dump (channel device-id parameters)
+  (warn "Not implemented yet!")
   `(data-dump ,channel ,device-id ,parameters))
 (defun write-completed-status (channel device-id)
+  (warn "Not implemented yet!")
   `(write-completed-status ,channel ,device-id))
 (defun write-error-status     (channel device-id)
+  (warn "Not implemented yet!")
   `(write-error-status ,channel ,device-id))
 
 (defun parse-system-exclusive-message (bytes)
@@ -207,7 +191,7 @@
                  (eat +eox+)
                  (device-id channel device-id))
                (case (aref bytes s)
-                 ((#.+data-dump+)
+                 ((#.+program-parameter-dump+)
                   (incf s)
                   (let ((parameters (loop
                                       :with parameters := '()
@@ -242,29 +226,15 @@
                   s format)))))))
 
 
-(defmacro sysex (&body expressions)
-  (let ((i -1)
-        (vvar (gensym)))
-    `(let ((,vvar (make-array ,(+ 2 (length expressions)) :element-type '(unsigned-byte 8))))
-       (setf (aref ,vvar ,(incf i)) +sysex+)
-       (setf ,@(mapcan (lambda (e) `((aref ,vvar ,(incf i)) ,e))
-                       expressions))
-       (setf (aref ,vvar ,(incf i)) +eox+)
-       ,vvar)))
 
-(defun device-id-request (channel)
-  (check-type channel channel)
-  (sysex
-    +korg-id+
-    (logior +device-id-request+ channel)))
-
-(defun data-dump-request (channel)
+(defun program-parameter-request (channel)
   (check-type channel channel)
   (sysex
     +korg-id+
     (logior +general-request+ channel)
     +korg-dw-8000+
-    +data-save-request+))
+    +program-parameter-request+))
+
 
 (defun write-request (channel program-number)
   (check-type channel channel)
@@ -273,7 +243,7 @@
     +korg-id+
     (logior +general-request+ channel)
     +korg-dw-8000+
-    +write-request+
+    +program-write-request+
     program-number))
 
 (defun parameter-change-request (channel parameter-offset parameter-value)
@@ -292,7 +262,7 @@
       +korg-id+
       (logior +general-request+ channel)
       +korg-dw-8000+
-      +parameter-change-request+
+      +program-parameter-change+
       (parameter-offset parameter)
       parameter-value)))
 

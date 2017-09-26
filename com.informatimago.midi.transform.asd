@@ -47,12 +47,17 @@
   :components ((:file "synthesizer")
                (:file "midi-application")
                (:file "parameter-map-compiler" :depends-on ("synthesizer"))
-               (:file "dw8000"                 :depends-on ("synthesizer"
+               (:file "korg"                   :depends-on ("synthesizer"))
+               (:file "korg-dw-8000"           :depends-on ("synthesizer"
+                                                            "korg"
                                                             "midi-application"
                                                             "parameter-map-compiler"))
+               (:file "korg-dss-1"             :depends-on ("synthesizer"
+                                                            "korg"))
                (:file "convert-cc-dw8000"      :depends-on ("midi-application"
                                                             "parameter-map-compiler"
-                                                            "dw8000")))
+                                                            "korg-dw-8000"
+                                                            "korg-dss-1")))
   #+asdf-unicode :encoding #+asdf-unicode :utf-8)
 
 ;;;; THE END ;;;;

@@ -32,26 +32,29 @@ help::
 	@printf "$(HELP_FORMAT)" "all"  "Builds the program."
 	@printf "$(HELP_FORMAT)" "help" "Prints this help."
 
-
 help::
 	@printf "$(HELP_FORMAT)" "midi-transform" "Generates the midi-transform executable."
 midi-transform: com.informatimago.midi.transform.asd \
-				convert-cc-dw8000.lisp \
-				dw8000.lisp \
 				generate-application.lisp \
 				loader.lisp \
+				\
+				convert-cc-dw8000.lisp \
+				korg-dss-1.lisp \
+				korg-dw-8000.lisp \
+				korg.lisp \
+				midi-application.lisp \
 				parameter-map-compiler.lisp \
-				parameter.lisp
+				synthesizer.lisp
 	@printf '(push :save-image-and-quit *features*)\n(load "generate-application.lisp")\n'|$(CCL)
-
-help::
-	@printf "$(HELP_FORMAT)" "clean" "Delete the midi-transform executable."
-clean:
-	-@rm -rf midi-transform
 
 help::
 	@printf "$(HELP_FORMAT)" "install" "Installs the midi-transform executable in $(PREFIX)/bin."
 install::midi-transform
 	@install -v -m 755 midi-transform "$(PREFIX)/bin"
+
+help::
+	@printf "$(HELP_FORMAT)" "clean" "Delete the midi-transform executable."
+clean:
+	-@rm -rf midi-transform *.bak
 
 #### THE END ####
