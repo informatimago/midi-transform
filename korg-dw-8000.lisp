@@ -153,16 +153,12 @@
 
 
 (defun device-id (channel device-id)
-  (warn "Not implemented yet!")
   `(device-id ,channel ,device-id))
-(defun data-dump (channel device-id parameters)
-  (warn "Not implemented yet!")
+(defun received-data-dump (channel device-id parameters)
   `(data-dump ,channel ,device-id ,parameters))
 (defun write-completed-status (channel device-id)
-  (warn "Not implemented yet!")
   `(write-completed-status ,channel ,device-id))
 (defun write-error-status     (channel device-id)
-  (warn "Not implemented yet!")
   `(write-error-status ,channel ,device-id))
 
 (defun parse-system-exclusive-message (bytes)
@@ -213,7 +209,7 @@
                                           (incf s 2)
                                       :finally (return parameters))))
                     (eat +eox+)
-                    (data-dump channel device-id parameters)))
+                    (received-data-dump channel device-id parameters)))
                  ((#.+write-completed-status+)
                   (write-completed-status channel device-id))
                  ((#.+write-error-status+)

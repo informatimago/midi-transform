@@ -131,15 +131,16 @@
 
 
 (defun midi-port-read (packet-list source-connection-refcon)
-  (let ((*standard-output* *midi-log*)
-        (source-connection-refcon (cffi:pointer-address source-connection-refcon))
-        (output-list '()))
-    (cond
-      ((dw-8000-refcon-p *midi-application* source-connection-refcon)
+  (handler-case
 
-       (let ((message-list (packet-list-to-messages packet-list)))
-         (call-effects :start-packet-list message-list source-connection-refcon)
-         (handler-case
+      (let ((*standard-output* *midi-log*)
+            (source-connection-refcon (cffi:pointer-address source-connection-refcon))
+            (output-list '()))
+        (cond
+          ((dw-8000-refcon-p *midi-application* source-connection-refcon)
+
+           (let ((message-list (packet-list-to-messages packet-list)))
+             (call-effects :start-packet-list message-list source-connection-refcon)
              (handler-bind
                  ((error (lambda (condition)
                            (terpri *error-output*)
@@ -150,15 +151,12 @@
                  ;; (unless (typep message '(or midi:timing-clock-message midi:active-sensing-message))
                  ;;   (format t "~&RD: ~A: ~A~%" source-connection-refcon message))
                  (call-effects :message message source-connection-refcon)))
-           (error (err)
-             (format t "~&RD: ~A: ~A~%" source-connection-refcon  err)))
-         (force-output)
-         (call-effects :end-packet-list message-list source-connection-refcon)))
+             (force-output)
+             (call-effects :end-packet-list message-list source-connection-refcon)))
 
-      ((controller-refcon-p *midi-application* source-connection-refcon)
+          ((controller-refcon-p *midi-application* source-connection-refcon)
 
-       (let ((message-list (packet-list-to-messages packet-list)))
-         (handler-case
+           (let ((message-list (packet-list-to-messages packet-list)))
              (handler-bind
                  ((error (lambda (condition)
                            (terpri *error-output*)
@@ -168,41 +166,45 @@
                            (signal condition))))
 
                (dolist (message message-list)
-                 ;; (unless (typep message '(or midi:timing-clock-message midi:active-sensing-message))
-                 ;;   (format t "~&RC: ~A: ~A~%" source-connection-refcon message))
-                 (typecase message
-                   (program-change-message
-                    (let ((program  (message-program message)))
-                      (format t "~&RC: ~A: PC ~A~%" source-connection-refcon program)
+                 (when (and (typep message 'channel-message)
+                            (= (message-channel message) (controller-channel *midi-application*)))
+                   ;; (unless (typep message '(or midi:timing-clock-message midi:active-sensing-message))
+                   ;;   (format t "~&RC: ~A: ~A~%" source-connection-refcon message))
+                   (typecase message
+                     (program-change-message
+                      (let ((program  (message-program message)))
+                        (format t "~&RC: ~A: PC ~A~%" source-connection-refcon program)
+                        (unless (= (message-channel message)
+                                   (dw-8000-channel *midi-application*))
+                          (setf (message-channel message) (dw-8000-channel *midi-application*)))
+                        (push message output-list)))
+                     (control-change-message
+                      (let ((controller (message-controller message))
+                            (value      (message-value      message)))
+                        ;; (format t "~&RC: ~A: CC ~A ~A~%" source-connection-refcon controller value)
+                        (if (configuringp *midi-application*)
+                            (configure *midi-application* controller value)
+                            (map-controller-to-sysex-request *midi-application* controller value))))
+                     (t
+                      ;; (unless (typep message '(or midi:timing-clock-message midi:active-sensing-message))
+                      ;;   (format t "~&RC: ~A: ~A~%" source-connection-refcon message))
                       (unless (= (message-channel message)
                                  (dw-8000-channel *midi-application*))
                         (setf (message-channel message) (dw-8000-channel *midi-application*)))
-                      (push message output-list)))
-                   (control-change-message
-                    (let ((controller (message-controller message))
-                          (value      (message-value      message)))
-                      ;; (format t "~&RC: ~A: CC ~A ~A~%" source-connection-refcon controller value)
-                      (if (configuringp *midi-application*)
-                          (configure *midi-application* controller value)
-                          (map-controller-to-sysex-request *midi-application* controller value))))
-                   (t
-                    ;; (unless (typep message '(or midi:timing-clock-message midi:active-sensing-message))
-                    ;;   (format t "~&RC: ~A: ~A~%" source-connection-refcon message))
-                    (unless (= (message-channel message)
-                               (dw-8000-channel *midi-application*))
-                      (setf (message-channel message) (dw-8000-channel *midi-application*)))
-                    (push message output-list)))))
-           (error (err)
-             (format t "~&RC: ~A: ~A~%" source-connection-refcon  err)))))
+                      (push message output-list))))))))
+          (t
+           (format t "~&RR: ~A: unexpected refcon.~%" source-connection-refcon)))
+        (when output-list
+          (send (midi-output-port *midi-application*)
+                (dw-8000-destination *midi-application*)
+                (packet-list-from-messages (nreverse output-list))))
+        (force-output))
 
-      (t
-       (format t "~&RR: ~A: unexpected refcon.~%" source-connection-refcon)))
-    (when output-list
-      (send (midi-output-port *midi-application*)
-            (dw-8000-destination *midi-application*)
-            (packet-list-from-messages (nreverse output-list))))
-    (force-output)))
-
+    (error (err)
+      (format t "~&RR: ~A: ~A~%"
+              (cffi:pointer-address source-connection-refcon)
+              err)
+      (force-output))))
 
 
 
@@ -517,20 +519,6 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
 
 (defun initialize ()
   (coremidi-framework))
-
-(defun print-midi-devices ()
-  (dolist (device (append (devices)
-                          (external-devices)))
-    (let ((entities      (device-entities device)))
-      (format t "~30A ~%"
-              (name device))
-      (dolist (entity entities)
-        (format t "          - ~A~@[ <- ~{~A~^, ~}~]~@[ -> ~{~A~^, ~}~]~%"
-                (name entity)
-                (mapcar (function name) (entity-sources entity))
-                (mapcar (function name) (entity-destinations entity))))
-      (terpri)))
-  (finish-output))
 
 ;;;; THE END ;;;;
 
