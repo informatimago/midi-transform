@@ -8,40 +8,7 @@
 ;;;;
 ;;;;    Transforms MIDI CC into DW-8000 parameter-changes.
 ;;;;
-;;;;
-;;;;    Main Features:
-;;;;
-;;;;    - Receives MIDI messages from the controller, and
-;;;;
-;;;;    - for normal MIDI messages (note, etc), forwards them to the DW-8000 /
-;;;;      EX-8000 synthesizer (updating the channel if needed).
-;;;;
-;;;;    - CC messages are transformed into parameter-change sysex (updating
-;;;;      the channel if needed).
-;;;;
-;;;;
-;;;;    Secondary Features (implemented):
-;;;;
-;;;;    - pass through mode for knobs (continuous controls).
-;;;;
-;;;;
-;;;;    Secondary Features (not implemented yet):
-;;;;
-;;;;    - configure the CC mapping interactively:
-;;;;       + select in the user interface a DW-8000 parameter.
-;;;;       + receive a CC message from the controller.
-;;;;       + establish the mappin between that CC message and the parameter.
-;;;;
-;;;;    - load and save programs.
-;;;;
-;;;;    - load and save whole program banks.
-;;;;
-;;;;    - currently bank MSB/LSB are ignored for program changes; they
-;;;;      could be taken into account, automatically downloading new
-;;;;      banks.
-;;;;
-;;;;    - add some graphical (or ascii art) features such as drawing
-;;;;      the envelopes when modifying them…
+;;;;    See README.rst.
 ;;;;
 ;;;;AUTHORS
 ;;;;    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
@@ -72,6 +39,7 @@
   (:use "COMMON-LISP"
         "MIDI"
         "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.UTILITY"
+        "COM.INFORMATIMAGO.COMMON-LISP.INTERACTIVE.INTERACTIVE"
         "COM.INFORMATIMAGO.MACOSX.COREMIDI"
         "COM.INFORMATIMAGO.MACOSX.COREMIDI.MIDI"
         "COM.INFORMATIMAGO.MIDI.ABSTRACT-MIDI-APPLICATION"
@@ -79,26 +47,14 @@
         "COM.INFORMATIMAGO.MIDI.PARAMETER-MAP-COMPILER"
         "COM.INFORMATIMAGO.MIDI.KORG.DW-8000")
   (:shadowing-import-from "COREMIDI" "DEVICE-ID")
+  (:shadow "INITIALIZE")
   (:export "INITIALIZE" "RUN" "PRINT-MIDI-DEVICES"))
 (in-package "COM.INFORMATIMAGO.MIDI.TRANSFORM")
 
+(defvar *rc-filename* ".midi-transform.lisp")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
-
-(defvar *effects* '())
-(defun call-effects (&rest arguments)
-  (mapc (lambda (effect)
-          (handler-case (apply effect arguments)
-            (error (err)
-              (format t "~&EE: effect ~A error: ~A~%" effect err)
-              (setf *effects* (delete effect *effects*)))))
-        (copy-list *effects*))
-  *effects*)
-
-
-(defvar *midi-log* *trace-output*)
-(defvar *midi-application* nil)
-
 
 (defparameter *allow-print-backtrace* t)
 (defun print-backtrace (&optional (output *error-output*))
@@ -106,85 +62,97 @@
    #+ccl (format output "~&~80,,,'-<~>~&~{~A~%~}~80,,,'-<~>~&"
                  (ccl::backtrace-as-list))))
 
+
+(defvar *effects* '())
+(defun call-effects (&rest arguments)
+  (mapc (lambda (effect)
+          (block effect
+            (handler-bind
+                ((error (lambda (err)
+                          (terpri *error-output*)
+                          (print-backtrace)
+                          (format t "~&EE: effect ~A error: ~A~%" effect err)
+                          (setf *effects* (delete effect *effects*))
+                          (return-from effect))))
+              (apply effect arguments))))
+        (copy-list *effects*))
+  *effects*)
+
+
+(defvar *midi-log* *trace-output*)
+(defvar *midi-application* nil)
+(defvar *midi-verbose* nil)
+
 (defun client-notify (message)
   (format *midi-log* "MM: ~A~%" message)
   (force-output *midi-log*))
 
 
 (defun midi-port-read (packet-list source-connection-refcon)
-  (handler-case
+  (handler-bind
+      ((error (lambda (err)
+                (terpri *error-output*)
+                (print-backtrace)
+                (format *error-output* "~&EE: ~A: ~A~%"
+                        (cffi:pointer-address source-connection-refcon)
+                        err)
+                (force-output *error-output*)
+                (return-from midi-port-read))))
 
-      (let ((*standard-output* *midi-log*)
-            (source-connection-refcon (cffi:pointer-address source-connection-refcon))
-            (output-list '()))
-        (cond
-          ((dw-8000-refcon-p *midi-application* source-connection-refcon)
+    (let ((*standard-output* *midi-log*)
+          (source-connection-refcon (cffi:pointer-address source-connection-refcon))
+          (output-list '()))
+      (cond
+        ((dw-8000-refcon-p *midi-application* source-connection-refcon)
 
-           (let ((message-list (packet-list-to-messages packet-list)))
-             (call-effects :start-packet-list message-list source-connection-refcon)
-             (handler-bind
-                 ((error (lambda (condition)
-                           (terpri *error-output*)
-                           (print-backtrace)
-                           (format *error-output* "~%ERROR: ~A~%" condition)
-                           (signal condition))))
-               (dolist (message message-list)
-                 ;; (unless (typep message '(or midi:timing-clock-message midi:active-sensing-message))
-                 ;;   (format t "~&RD: ~A: ~A~%" source-connection-refcon message))
-                 (call-effects :message message source-connection-refcon)))
-             (force-output)
-             (call-effects :end-packet-list message-list source-connection-refcon)))
+         (let ((message-list (packet-list-to-messages packet-list)))
+           (call-effects :start-packet-list message-list source-connection-refcon)
+           (dolist (message message-list)
+             (when *midi-verbose*
+               (unless (typep message '(or midi:timing-clock-message midi:active-sensing-message))
+                 (format t "~&RD: ~A: ~A~%" source-connection-refcon message)))
+             (call-effects :message message source-connection-refcon))
+           (force-output)
+           (call-effects :end-packet-list message-list source-connection-refcon)))
 
-          ((controller-refcon-p *midi-application* source-connection-refcon)
+        ((controller-refcon-p *midi-application* source-connection-refcon)
 
-           (let ((message-list (packet-list-to-messages packet-list)))
-             (handler-bind
-                 ((error (lambda (condition)
-                           (terpri *error-output*)
-                           (print-backtrace)
-                           (format *error-output* "~%ERROR: ~A~%" condition)
-                           (finish-output)
-                           (signal condition))))
-
-               (dolist (message message-list)
-                 (when (and (typep message 'channel-message)
-                            (= (message-channel message) (controller-channel *midi-application*)))
-                   ;; (unless (typep message '(or midi:timing-clock-message midi:active-sensing-message))
-                   ;;   (format t "~&RC: ~A: ~A~%" source-connection-refcon message))
-                   (typecase message
-                     (program-change-message
-                      (let ((program  (message-program message)))
-                        (format t "~&RC: ~A: PC ~A~%" source-connection-refcon program)
-                        (unless (= (message-channel message)
-                                   (dw-8000-channel *midi-application*))
-                          (setf (message-channel message) (dw-8000-channel *midi-application*)))
-                        (push message output-list)))
-                     (control-change-message
-                      (let ((controller (message-controller message))
-                            (value      (message-value      message)))
-                        ;; (format t "~&RC: ~A: CC ~A ~A~%" source-connection-refcon controller value)
-                        (if (configuringp *midi-application*)
-                            (configure *midi-application* controller value)
-                            (map-controller-to-sysex-request *midi-application* controller value))))
-                     (t
-                      ;; (unless (typep message '(or midi:timing-clock-message midi:active-sensing-message))
-                      ;;   (format t "~&RC: ~A: ~A~%" source-connection-refcon message))
-                      (unless (= (message-channel message)
-                                 (dw-8000-channel *midi-application*))
-                        (setf (message-channel message) (dw-8000-channel *midi-application*)))
-                      (push message output-list))))))))
-          (t
-           (format t "~&RR: ~A: unexpected refcon.~%" source-connection-refcon)))
-        (when output-list
-          (send (midi-output-port *midi-application*)
-                (dw-8000-destination *midi-application*)
-                (packet-list-from-messages (nreverse output-list))))
-        (force-output))
-
-    (error (err)
-      (format t "~&RR: ~A: ~A~%"
-              (cffi:pointer-address source-connection-refcon)
-              err)
+         (let ((message-list (packet-list-to-messages packet-list)))
+           (dolist (message message-list)
+             (when (and (typep message 'channel-message)
+                        (= (message-channel message) (controller-channel *midi-application*)))
+               (typecase message
+                 (program-change-message
+                  (let ((program  (message-program message)))
+                    (format t "~&RC: ~S~%" message)
+                    (format t "~&RC: ~A: PC ~A~%" source-connection-refcon program)
+                    (unless (= (message-channel message)
+                               (dw-8000-channel *midi-application*))
+                      (setf (message-channel message) (dw-8000-channel *midi-application*)))
+                    (push message output-list)))
+                 (control-change-message
+                  (let ((controller (message-controller message))
+                        (value      (message-value      message)))
+                    (when *midi-verbose*
+                      (format t "~&RC: ~S~%" message)
+                      (format t "~&RC: ~A: CC ~A ~A~%" source-connection-refcon controller value))
+                    (if (configuringp *midi-application*)
+                        (configure *midi-application* controller value)
+                        (map-controller-to-sysex-request *midi-application* controller value))))
+                 (t
+                  (when *midi-verbose*
+                    (unless (typep message '(or midi:timing-clock-message midi:active-sensing-message))
+                      (format t "~&RC: ~A: ~A~%" source-connection-refcon message)))
+                  (unless (= (message-channel message)
+                             (dw-8000-channel *midi-application*))
+                    (setf (message-channel message) (dw-8000-channel *midi-application*)))
+                  (push message output-list)))))))
+        (t
+         (format t "~&RR: ~A: unexpected refcon.~%" source-connection-refcon)))
+      (when output-list
+        (send (midi-output-port *midi-application*)
+              (dw-8000-destination *midi-application*)
+              (packet-list-from-messages (nreverse output-list))))
       (force-output))))
 
 
@@ -324,7 +292,6 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
                                                         :value (if new-state 127 0)))))))
 
 
-
 (defmethod initialize-instance :after ((self convert-cc-dw8000-application) &key &allow-other-keys)
   (let ((synthesizer (synthesizer self)))
     (setf (slot-value self 'dw-8000-destination)    (find-destination-endpoint-for-device-named (dw-8000-device-name self))
@@ -386,73 +353,134 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
     ;;  (auto-bend-mode 1) ;               up down        -> 1 button                      ; toggle 60
     ;;  (polarity 1) ;                     /\  \/         -> 1 button                      ; toggle 59
     ;;  (bend-vcf 1) ;                     off on         -> 1 button                      ; toggle 58
+    ;;
+    ;; PAGE, BANK, PROGRAM-CHANGE, PROGRAM-UP and PROGRAM-DOWN are virtual internal-parameters.
+    ;; They are implemented by the SYNTHESIZER subclass.
 
     (compile-map
      '(
+
+       (select bank (selection
+                     ((toggle 76) 1))
+
+         ;; pc 64-127 should not occur; instead we could map them to
+         ;; MEX-800, or implement our own extended bank.
+
+         (group
+          (map (program-change  0 31)  (program-change 0 31))
+          ;; program-change 32-63 should not occur, but in case:
+          (map (program-change 32 63)  (program-change 32 63)))
+
+         (group
+          (map (program-change 32 63)  (program-change 0  31))
+          ;; program-change 32-63 should not occur, but in case:
+          (map (program-change  0 31)  (program-change 32 63))))
+
+       (map program-up                          ((momentary 74) 1))
+       (map program-down                        ((momentary 75) 1))
+
        (select page (selection
                      ((momentary 95) 0)
                      ((momentary 79) 1)
                      ((momentary 63) 2))
 
          (group
-          (map-cc (osc1-octave              0 3)     ((continuous 20) 0 127))
-          (map-cc (osc1-waveform            0 15)    ((continuous 21) 0 127))
-          (map-cc (osc1-level               0 31)    ((continuous 22) 0 127))
-          (map-cc (aftertouch-osc-mg        0 3)     ((continuous 23) 0 127))
-          (map-cc (keyboard-track           0 3)     ((continuous 24) 0 127))
-          (map-cc (noise-level              0 31)    ((continuous 25) 0 127))
-          (map-cc (cutoff                   0 63)    ((continuous 26) 0 127))
-          (map-cc (resonance                0 31)    ((continuous 27) 0 127))
-          (map-cc (vcf-eg-intensity         0 31)    ((continuous 28) 0 127))
-          (map-cc (vcf-attack               0 31)    ((continuous 29) 0 127))
-          (map-cc (vcf-decay                0 31)    ((continuous 30) 0 127))
-          (map-cc (vcf-break-point          0 31)    ((continuous 31) 0 127))
-          (map-cc (vcf-slope                0 31)    ((continuous 32) 0 127))
-          (map-cc (vcf-sustain              0 31)    ((continuous 33) 0 127))
-          (map-cc (vcf-release              0 31)    ((continuous 34) 0 127))
-          (map-cc (vcf-velocity-sensitivity 0 7)     ((continuous 35) 0 127)))
+          (map (osc1-octave              0 3)     ((continuous 20) 0 127))
+          (map (osc1-waveform            0 15)    ((continuous 21) 0 127))
+          (map (osc1-level               0 31)    ((continuous 22) 0 127))
+          (map (aftertouch-osc-mg        0 3)     ((continuous 23) 0 127))
+          (map (keyboard-track           0 3)     ((continuous 24) 0 127))
+          (map (noise-level              0 31)    ((continuous 25) 0 127))
+          (map (cutoff                   0 63)    ((continuous 26) 0 127))
+          (map (resonance                0 31)    ((continuous 27) 0 127))
+          (map (vcf-eg-intensity         0 31)    ((continuous 28) 0 127))
+          (map (vcf-attack               0 31)    ((continuous 29) 0 127))
+          (map (vcf-decay                0 31)    ((continuous 30) 0 127))
+          (map (vcf-break-point          0 31)    ((continuous 31) 0 127))
+          (map (vcf-slope                0 31)    ((continuous 32) 0 127))
+          (map (vcf-sustain              0 31)    ((continuous 33) 0 127))
+          (map (vcf-release              0 31)    ((continuous 34) 0 127))
+          (map (vcf-velocity-sensitivity 0 7)     ((continuous 35) 0 127)))
 
          (group
-          (map-cc (osc2-octave              0 3)     ((continuous 20) 0 127))
-          (map-cc (osc2-waveform            0 15)    ((continuous 21) 0 127))
-          (map-cc (osc2-level               0 31)    ((continuous 22) 0 127))
-          (map-cc (osc2-interval            0 7)     ((continuous 23) 0 127))
-          (map-cc (osc2-detune              0 7)     ((continuous 24) 0 127))
-          (map-cc (noise-level              0 31)    ((continuous 25) 0 127))
-          (map-cc (cutoff                   0 63)    ((continuous 26) 0 127))
-          (map-cc (resonance                0 31)    ((continuous 27) 0 127))
-          (map-cc (mg-wave-form             0 3)     ((continuous 28) 0 127))
-          (map-cc (vca-attack               0 31)    ((continuous 29) 0 127))
-          (map-cc (vca-decay                0 31)    ((continuous 30) 0 127))
-          (map-cc (vca-break-point          0 31)    ((continuous 31) 0 127))
-          (map-cc (vca-slope                0 31)    ((continuous 32) 0 127))
-          (map-cc (vca-sustain              0 31)    ((continuous 33) 0 127))
-          (map-cc (vca-release              0 31)    ((continuous 34) 0 127))
-          (map-cc (vca-velocity-sensitivity 0 7)     ((continuous 35) 0 127)))
+          (map (osc2-octave              0 3)     ((continuous 20) 0 127))
+          (map (osc2-waveform            0 15)    ((continuous 21) 0 127))
+          (map (osc2-level               0 31)    ((continuous 22) 0 127))
+          (map (osc2-interval            0 7)     ((continuous 23) 0 127))
+          (map (osc2-detune              0 7)     ((continuous 24) 0 127))
+          (map (noise-level              0 31)    ((continuous 25) 0 127))
+          (map (cutoff                   0 63)    ((continuous 26) 0 127))
+          (map (resonance                0 31)    ((continuous 27) 0 127))
+          (map (mg-wave-form             0 3)     ((continuous 28) 0 127))
+          (map (vca-attack               0 31)    ((continuous 29) 0 127))
+          (map (vca-decay                0 31)    ((continuous 30) 0 127))
+          (map (vca-break-point          0 31)    ((continuous 31) 0 127))
+          (map (vca-slope                0 31)    ((continuous 32) 0 127))
+          (map (vca-sustain              0 31)    ((continuous 33) 0 127))
+          (map (vca-release              0 31)    ((continuous 34) 0 127))
+          (map (vca-velocity-sensitivity 0 7)     ((continuous 35) 0 127)))
 
          (group
-          (map-cc (aftertouch-vcf           0 3)     ((continuous 20) 0 127))
-          (map-cc (aftertouch-vca           0 3)     ((continuous 21) 0 127))
-          (map-cc (auto-bend-time           0 31)    ((continuous 22) 0 127))
-          (map-cc (auto-bend-intensity      0 31)    ((continuous 23) 0 127))
-          (map-cc (bend-osc                 0 15)    ((continuous 24) 0 127))
-          (map-cc (portamento               0 31)    ((continuous 25) 0 127))
-          (map-cc (mg-frequency             0 31)    ((continuous 26) 0 127))
-          (map-cc (mg-delay                 0 31)    ((continuous 27) 0 127))
-          (map-cc (mg-osc                   0 31)    ((continuous 28) 0 127))
-          (map-cc (mg-vcf                   0 31)    ((continuous 29) 0 127))
-          (map-cc (delay-time               0 7)     ((continuous 30) 0 127))
-          (map-cc (delay-factor             0 15)    ((continuous 31) 0 127))
-          (map-cc (delay-feedback           0 15)    ((continuous 32) 0 127))
-          (map-cc (delay-frequency          0 31)    ((continuous 33) 0 127))
-          (map-cc (delay-intensity          0 31)    ((continuous 34) 0 127))
-          (map-cc (delay-effect-level       0 15)    ((continuous 35) 0 127))))
+          (map (aftertouch-vcf           0 3)     ((continuous 20) 0 127))
+          (map (aftertouch-vca           0 3)     ((continuous 21) 0 127))
+          (map (auto-bend-time           0 31)    ((continuous 22) 0 127))
+          (map (auto-bend-intensity      0 31)    ((continuous 23) 0 127))
+          (map (bend-osc                 0 15)    ((continuous 24) 0 127))
+          (map (portamento               0 31)    ((continuous 25) 0 127))
+          (map (mg-frequency             0 31)    ((continuous 26) 0 127))
+          (map (mg-delay                 0 31)    ((continuous 27) 0 127))
+          (map (mg-osc                   0 31)    ((continuous 28) 0 127))
+          (map (mg-vcf                   0 31)    ((continuous 29) 0 127))
+          (map (delay-time               0 7)     ((continuous 30) 0 127))
+          (map (delay-factor             0 15)    ((continuous 31) 0 127))
+          (map (delay-feedback           0 15)    ((continuous 32) 0 127))
+          (map (delay-frequency          0 31)    ((continuous 33) 0 127))
+          (map (delay-intensity          0 31)    ((continuous 34) 0 127))
+          (map (delay-effect-level       0 15)    ((continuous 35) 0 127))))
 
-       (map-cc assign-mode                         (combination ((toggle 78) 2) ((toggle 62) 1)))
-       (map-cc auto-bend-select                    (combination ((toggle 77) 1) ((toggle 61) 2)))
-       (map-cc auto-bend-mode                      ((toggle 60) 1))
-       (map-cc polarity                            ((toggle 59) 1))
-       (map-cc bend-vcf                            ((toggle 58) 1)))
+       (map assign-mode                         (combination ((toggle 78) 2) ((toggle 62) 1)))
+       (map auto-bend-select                    (combination ((toggle 77) 1) ((toggle 61) 2)))
+       (map auto-bend-mode                      ((toggle 60) 1))
+       (map polarity                            ((toggle 59) 1))
+       (map bend-vcf                            ((toggle 58) 1)))
+
+     parameters)))
+
+
+(defmethod vmini-map-cc ((synthesizer dw-8000-synthesizer))
+  (let ((parameters (synthesizer-parameters synthesizer)))
+
+    (compile-map
+     '(
+
+       (map program-up                          ((momentary 15) 1))
+       (map program-down                        ((momentary 16) 1))
+
+       (select page         (selection (combination ((toggle 13) 2) ((toggle 12) 1)))
+
+         (group
+          (map (cutoff                   0 63)    ((continuous 20) 0 127))
+          (map (resonance                0 31)    ((continuous 21) 0 127))
+          (map (resonance                0 31)    ((continuous 22) 0 127))
+          (map (vcf-eg-intensity         0 31)    ((continuous 23) 0 127)))
+
+         (group
+          (map (vca-attack               0 31)    ((continuous 20) 0 127))
+          (map (vca-decay                0 31)    ((continuous 31) 0 127))
+          (map (vca-sustain              0 31)    ((continuous 32) 0 127))
+          (map (vca-release              0 31)    ((continuous 33) 0 127)))
+
+         (group
+          (map (mg-frequency             0 31)    ((continuous 20) 0 127))
+          (map (mg-wave-form             0 3)     ((continuous 21) 0 127))
+          (map (mg-osc                   0 31)    ((continuous 22) 0 127))
+          (map (mg-vcf                   0 31)    ((continuous 23) 0 127)))
+
+         (group
+          (map (delay-time               0 7)     ((continuous 20) 0 127))
+          (map (delay-frequency          0 31)    ((continuous 21) 0 127))
+          (map (delay-intensity          0 31)    ((continuous 22) 0 127))
+          (map (delay-feedback           0 15)    ((continuous 23) 0 127)))))
 
      parameters)))
 
@@ -477,6 +505,19 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
                                     :controller-channel controller-channel
                                     :synthesizer synthesizer
                                     :cc-map (default-map-cc synthesizer))))
+    (push (lambda (selector message source-connection-refcon)
+            (declare (ignore source-connection-refcon))
+            (block effect
+              (when (and (eq :message selector)
+                         (typep message 'midi:system-exclusive-message))
+                (handler-bind
+                    ((error (lambda (err)
+                              (terpri *error-output*)
+                              (print-backtrace)
+                              (format t "~&EE: ~A~%" err)
+                              (return-from effect))))
+                  (receive-sysex-message synthesizer message)))))
+          *effects*)
     (unwind-protect
          (progn
            (setf *midi-application* application)
@@ -490,18 +531,30 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
                    ((string-equal command "help")
                     (format t "~&Help: ~:{~%  ~8A ~A~}~%"
                             '(("help" "Displays this help.")
-                              ("quit" "Stops this midi application."))))
+                              ("quit" "Stops this midi application.")
+                              ("" "otherwise, evaluate lisp expressions."))))
                    (t
-                    (format t "~&Error: Unknown command ~S~%" command)))
+                    (rep :line command)))
              :until (string-equal command "quit")))
       (terminate *midi-application*)
       (setf *midi-application* nil))))
 
 
+(defun load-rc-file ()
+  (with-open-file (rc (merge-pathnames *rc-filename* (user-homedir-pathname))
+                      :if-does-not-exist nil)
+    (when rc
+      (handler-case (load rc)
+        (error (err)
+          (terpri *error-output*)
+          (print-backtrace)
+          (format *error-output* "~%ERROR: ~A~%" err)
+          (finish-output))))))
+
 
 (defun initialize ()
-  (coremidi-framework))
+  (com.informatimago.common-lisp.interactive.interactive:initialize)
+  (coremidi-framework)
+  (load-rc-file))
 
 ;;;; THE END ;;;;
-
-
