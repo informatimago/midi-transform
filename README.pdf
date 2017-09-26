@@ -105,7 +105,7 @@ endobj
 endobj
 15 0 obj
 <<
-/Author () /CreationDate (D:20170918163608-01'00') /Creator (\(unspecified\)) /Keywords () /ModDate (D:20170918163608-01'00') /Producer (ReportLab PDF Library - www.reportlab.com) 
+/Author () /CreationDate (D:20170926090803-01'00') /Creator (\(unspecified\)) /Keywords () /ModDate (D:20170926090803-01'00') /Producer (ReportLab PDF Library - www.reportlab.com) 
   /Subject (\(unspecified\)) /Title (midi-transform) /Trapped /False
 >>
 endobj
@@ -183,7 +183,7 @@ endobj
 endobj
 30 0 obj
 <<
-/Length 7309
+/Length 8811
 >>
 stream
 1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
@@ -447,7 +447,31 @@ q
 1 0 0 1 62.69291 332.0236 cm
 Q
 q
-1 0 0 1 62.69291 260.0236 cm
+1 0 0 1 62.69291 308.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 9 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 14 Tm /F1 10 Tf 12 TL 1.985697 Tw (option for absolute or pass-thru mode for knobs. \(absolute is better when creating new sounds,) Tj T* 0 Tw (pass-thru is better when patching a sound live\).) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 302.0236 cm
+Q
+q
+1 0 0 1 62.69291 230.0236 cm
 0 0 0 rg
 BT /F1 10 Tf 12 TL ET
 q
@@ -493,7 +517,7 @@ q
 1 0 0 1 23 -3 cm
 q
 0 0 0 rg
-BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (select in the user interface a DW-8000 parameter.) Tj T* ET
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (select in the user interface a parameter of the target synthesizer.) Tj T* ET
 Q
 Q
 q
@@ -541,7 +565,7 @@ q
 1 0 0 1 23 -3 cm
 q
 0 0 0 rg
-BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (establish the mappin between that CC message and the parameter.) Tj T* ET
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (establish the mapping between that CC message and the parameter.) Tj T* ET
 Q
 Q
 q
@@ -560,34 +584,10 @@ q
 Q
 Q
 q
-1 0 0 1 62.69291 254.0236 cm
-Q
-q
-1 0 0 1 62.69291 242.0236 cm
-0 0 0 rg
-BT /F1 10 Tf 12 TL ET
-q
-1 0 0 1 6 -3 cm
-q
-0 0 0 rg
-BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
-Q
-Q
-q
-1 0 0 1 23 -3 cm
-q
-0 0 0 rg
-BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (load and save programs.) Tj T* ET
-Q
-Q
-q
-Q
-Q
-q
-1 0 0 1 62.69291 236.0236 cm
-Q
-q
 1 0 0 1 62.69291 224.0236 cm
+Q
+q
+1 0 0 1 62.69291 212.0236 cm
 0 0 0 rg
 BT /F1 10 Tf 12 TL ET
 q
@@ -601,21 +601,21 @@ q
 1 0 0 1 23 -3 cm
 q
 0 0 0 rg
-BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (load and save whole program banks.) Tj T* ET
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (support other target synthesizers \(Korg DSS-1 in addition to Korg DW-8000\).) Tj T* ET
 Q
 Q
 q
 Q
 Q
 q
-1 0 0 1 62.69291 218.0236 cm
+1 0 0 1 62.69291 206.0236 cm
 Q
 q
 1 0 0 1 62.69291 194.0236 cm
 0 0 0 rg
 BT /F1 10 Tf 12 TL ET
 q
-1 0 0 1 6 9 cm
+1 0 0 1 6 -3 cm
 q
 0 0 0 rg
 BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
@@ -625,7 +625,7 @@ q
 1 0 0 1 23 -3 cm
 q
 0 0 0 rg
-BT 1 0 0 1 0 14 Tm /F1 10 Tf 12 TL 2.907674 Tw (currently bank MSB/LSB are ignored for program changes; they could be taken into account,) Tj T* 0 Tw (automatically downloading new banks.) Tj T* ET
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (support multiple target synthesizers and multiple controllers.) Tj T* ET
 Q
 Q
 q
@@ -649,6 +649,78 @@ q
 1 0 0 1 23 -3 cm
 q
 0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (load and save programs.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 170.0236 cm
+Q
+q
+1 0 0 1 62.69291 158.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (load and save whole program banks.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 152.0236 cm
+Q
+q
+1 0 0 1 62.69291 128.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 9 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 14 Tm /F1 10 Tf 12 TL 2.907674 Tw (currently bank MSB/LSB are ignored for program changes; they could be taken into account,) Tj T* 0 Tw (automatically downloading new banks.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 122.0236 cm
+Q
+q
+1 0 0 1 62.69291 110.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
 BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (add some graphical \(or ascii art\) features such as drawing the envelopes when modifying them\205) Tj T* ET
 Q
 Q
@@ -656,7 +728,31 @@ q
 Q
 Q
 q
-1 0 0 1 62.69291 176.0236 cm
+1 0 0 1 62.69291 104.0236 cm
+Q
+q
+1 0 0 1 62.69291 92.02362 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (port to Linux \(eg. Raspberry Pi\)) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 92.02362 cm
 Q
  
 endstream
@@ -1207,20 +1303,20 @@ xref
 0000004196 00000 n 
 0000004305 00000 n 
 0000004392 00000 n 
-0000011753 00000 n 
-0000015275 00000 n 
-0000018551 00000 n 
-0000023046 00000 n 
-0000023921 00000 n 
-0000023998 00000 n 
-0000024032 00000 n 
-0000024066 00000 n 
-0000024100 00000 n 
-0000024134 00000 n 
+0000013255 00000 n 
+0000016777 00000 n 
+0000020053 00000 n 
+0000024548 00000 n 
+0000025423 00000 n 
+0000025500 00000 n 
+0000025534 00000 n 
+0000025568 00000 n 
+0000025602 00000 n 
+0000025636 00000 n 
 trailer
 <<
 /ID 
-[<145e5de11748fc727d5c86666f0a1657><145e5de11748fc727d5c86666f0a1657>]
+[<87282e5d5277b37b90c7e88ea7c888ae><87282e5d5277b37b90c7e88ea7c888ae>]
 % ReportLab generated PDF document -- digest (http://www.reportlab.com)
 
 /Info 15 0 R
@@ -1228,5 +1324,5 @@ trailer
 /Size 41
 >>
 startxref
-24168
+25670
 %%EOF
