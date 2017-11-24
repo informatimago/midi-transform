@@ -485,6 +485,25 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
      parameters)))
 
 
+(defmethod print-configuration ((application convert-cc-dw8000-application))
+  (format t "~2%")
+  (format t "Application ~A:~%" (class-name (class-of application)))
+  (format t "~A ~A channel ~A:~%    src: ~A~%    dst: ~A~%    refcon ~A~%"
+          "Controller"
+          (controller-device-name application)
+          (controller-channel application)
+          (name (controller-source application))
+          (name (controller-destination application))
+          (controller-refcon application))
+  (format t "~A ~A channel ~A:~%    src: ~A~%    dst: ~A~%    refcon ~A~%"
+          "Synthesizer"
+          (dw-8000-device-name application)
+          (dw-8000-channel application)
+          (name (dw-8000-source application))
+          (name (dw-8000-destination application))
+          (dw-8000-refcon application))
+  (format t "~2%"))
+
 
 (defun run (&key
               (dw-8000-device-name "Korg DW-8000")
@@ -521,6 +540,7 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
     (unwind-protect
          (progn
            (setf *midi-application* application)
+           (print-configuration *midi-application*)
            (loop
              :for command := (string-trim " "
                                           (progn (format t "> ")
