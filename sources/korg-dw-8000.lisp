@@ -1,6 +1,6 @@
 ;;;; -*- mode:lisp;coding:utf-8 -*-
 ;;;;**************************************************************************
-;;;;FILE:               dw8000.lisp
+;;;;FILE:               dw-8000.lisp
 ;;;;LANGUAGE:           Common-Lisp
 ;;;;SYSTEM:             Common-Lisp
 ;;;;USER-INTERFACE:     NONE
@@ -39,6 +39,7 @@
         "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.QUEUE"
         "COM.INFORMATIMAGO.MIDI.ABSTRACT-SYNTHESIZER"
         "COM.INFORMATIMAGO.MIDI.ABSTRACT-MIDI-APPLICATION"
+        "COM.INFORMATIMAGO.MIDI.KORG"
         "COM.INFORMATIMAGO.MIDI.PARAMETER-MAP-COMPILER")
   (:import-from "COM.INFORMATIMAGO.MACOSX.COREMIDI"
                 "SEND-SYSEX" "SYSEX-REQUEST"
@@ -58,12 +59,12 @@
    "+DEVICE-ID+"
    "+GENERAL-REQUEST+"
    "+DEVICE-ID-REQUEST+"
-   "+DATA-SAVE-REQUEST+"
-   "+DATA-DUMP+"
-   "+WRITE-REQUEST+"
+   "+PROGRAM-PARAMETER-REQUEST+"
+   "+PROGRAM-PARAMETER-DUMP+"
+   "+PROGRAM-WRITE-REQUEST+"
    "+WRITE-COMPLETED-STATUS+"
    "+WRITE-ERROR-STATUS+"
-   "+PARAMETER-CHANGE-REQUEST+"
+   "+PROGRAM-PARAMETER-CHANGE+"
    "DEVICE-ID"
    "DATA-DUMP"
    "WRITE-COMPLETED-STATUS"
@@ -158,32 +159,11 @@
    ))
 (in-package "COM.INFORMATIMAGO.MIDI.KORG.DW-8000")
 
-
 (deftype channel          () '(integer 0 15))
 (deftype program-number   () '(integer 0 63))
 (deftype parameter-offset () '(integer 0 63))
 (deftype parameter-value  () '(integer 0 63))
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
- (defconstant +sysex+                        #xf0)
- (defconstant +eox+                          #xf7)
-
- (defconstant +korg-id+                      #x42)
-
- (defconstant +korg-dw-8000+                 #x03)
- (defconstant +korg-ex-8000+                 #x03)
-
- (defconstant +device-id+                    3)
-
- (defconstant +general-request+              #x30)
- (defconstant +device-id-request+            #x40)
-
- (defconstant +data-save-request+            #x10)
- (defconstant +data-dump+                    #x40)
- (defconstant +write-request+                #x11)
- (defconstant +write-completed-status+       #x21)
- (defconstant +write-error-status+           #x22)
- (defconstant +parameter-change-request+     #x41))
 
 (defun device-id (channel device-id)
   (print `(device-id ,channel ,device-id)))
@@ -225,7 +205,7 @@
                  (eat +eox+)
                  (device-id channel device-id))
                (case (aref bytes s)
-                 ((#.+data-dump+)
+                 ((#.+program-parameter-dump+)
                   (incf s)
                   (let ((parameters (loop
                                       :with parameters := '()
@@ -267,7 +247,6 @@
                   s format)))))))
 
 
-
 (defmacro sysex (&body expressions)
   (let ((i -1)
         (vvar (gensym)))
@@ -290,7 +269,8 @@
     +korg-id+
     (logior +general-request+ channel)
     +korg-dw-8000+
-    +data-save-request+))
+    +program-parameter-request+))
+
 
 (defun write-request (channel program-number)
   (check-type channel channel)
@@ -299,7 +279,7 @@
     +korg-id+
     (logior +general-request+ channel)
     +korg-dw-8000+
-    +write-request+
+    +program-write-request+
     program-number))
 
 (defun parameter-change-request (channel parameter-offset parameter-value)
@@ -318,7 +298,7 @@
       +korg-id+
       (logior +general-request+ channel)
       +korg-dw-8000+
-      +parameter-change-request+
+      +program-parameter-change+
       (parameter-offset parameter)
       parameter-value)))
 

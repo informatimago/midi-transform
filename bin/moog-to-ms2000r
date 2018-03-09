@@ -1,0 +1,2 @@
+#!/bin/bash
+exec rlwrap midi-transform  -cd "Moog Sub 37" -cc 9 -dd "Korg MS2000R" -dc 14

@@ -62,13 +62,13 @@
 
 (setf *source-directory* (make-pathname :defaults *load-truename*
                                         :name nil :type nil :version nil)
-      *base-directory*   (merge-pathnames (make-pathname :directory '(:relative :up))
+      *base-directory*   (merge-pathnames (make-pathname :directory '(:relative :up "dependencies"))
                                           *source-directory*
                                           nil))
 
-(clone-repository "git@framagit.org:patchwork/CoreMIDI.git"                       "CoreMIDI/coremidi.lisp")
-(clone-repository "git@git.framasoft.org:abnotation/midi.git"                     "midi/midi.lisp")
-(clone-repository "git@git.framasoft.org:com-informatimago/com-informatimago.git" "com-informatimago/com.informatimago.asd")
+(clone-repository "git@framagit.org:patchwork/CoreMIDI.git"                       "../dependencies/CoreMIDI/coremidi.lisp")
+(clone-repository "git@git.framasoft.org:abnotation/midi.git"                     "../dependencies/midi/midi.lisp")
+(clone-repository "git@git.framasoft.org:com-informatimago/com-informatimago.git" "../dependencies/com-informatimago/com.informatimago.asd")
 
 (dolist (path (list (merge-pathnames "midi/"              *base-directory*)
                     (merge-pathnames "CoreMIDI/"          *base-directory*)

@@ -1,6 +1,6 @@
 ;;;; -*- mode:lisp;coding:utf-8 -*-
 ;;;;**************************************************************************
-;;;;FILE:               convert-cc-dw8000.lisp
+;;;;FILE:               convert-cc-dw-8000.lisp
 ;;;;LANGUAGE:           Common-Lisp
 ;;;;SYSTEM:             Common-Lisp
 ;;;;USER-INTERFACE:     NONE
@@ -9,6 +9,25 @@
 ;;;;    Transforms MIDI CC into DW-8000 parameter-changes.
 ;;;;
 ;;;;    See README.rst.
+;;;;
+;;;;    - add support for other synthesizers (eg. Korg DSS-1).
+;;;;
+;;;;    - add support for other controllers (eg. Korg KRONOS, or Korg MS2000/R).
+;;;;
+;;;;    - transform the modulation wheel into some Sysex parameter
+;;;;      (eg. map it to cutoff or resonance, etc).  It doesn't sound like
+;;;;      the Modulation Wheel is currently taken into account by the DW-8000.
+;;;;      DSS-1
+;;;;
+;;;;      DW-8000/EX-8000, DSS-1/DSM-1 receive MIDI OSC Modulation,
+;;;;      MIDI VCF Modulation, MIDI Volume, MIDI Pitch Bender Change,
+;;;;      that could be mapped from the Modulation Wheel (transmitted
+;;;;      as a MIDI CC from the VI61), or from some other control.
+;;;;
+;;;;      We could also map the Damper Pedal, Portamento, All Note
+;;;;      OFF, from toggles or momentary controls.
+;;;;
+;;;;
 ;;;;
 ;;;;AUTHORS
 ;;;;    <PJB> Pascal J. Bourguignon <pjb@informatimago.com>
@@ -263,7 +282,8 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 
-(defclass convert-cc-dw8000-application (midi-application)
+
+(defclass convert-cc-dw-8000-application (midi-application)
   ((dw-8000-device-name    :reader dw-8000-device-name    :initarg :dw-8000-device-name)
    (dw-8000-channel        :reader dw-8000-channel        :initarg :dw-8000-channel)
    (dw-8000-destination    :reader dw-8000-destination)
@@ -281,7 +301,7 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
 
 
 (defgeneric (setf controller-state) (new-state application controller)
-  (:method (new-state (application convert-cc-dw8000-application) controller)
+  (:method (new-state (application convert-cc-dw-8000-application) controller)
     (check-type controller (integer 0 127))
     (send (midi-output-port application)
           (controller-destination application)
@@ -292,28 +312,27 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
                                                         :value (if new-state 127 0)))))))
 
 
-(defmethod initialize-instance :after ((self convert-cc-dw8000-application) &key &allow-other-keys)
+
+(defmethod initialize-instance :after ((self convert-cc-dw-8000-application) &key &allow-other-keys)
   (let ((synthesizer (synthesizer self)))
     (setf (slot-value self 'dw-8000-destination)    (find-destination-endpoint-for-device-named (dw-8000-device-name self))
           (slot-value self 'dw-8000-source)         (find-source-endpoint-for-device-named      (dw-8000-device-name self))
           (synthesizer-destination synthesizer)     (slot-value self 'dw-8000-destination)
           (synthesizer-source      synthesizer)     (slot-value self 'dw-8000-source)
           (slot-value self 'controller-destination) (find-destination-endpoint-for-device-named (controller-device-name self))
-          (slot-value self 'controller-source)      (find-source-endpoint-for-device-named      (controller-device-name self))))
-  (connect-source self (slot-value self 'dw-8000-source)     (dw-8000-refcon self))
-  (connect-source self (slot-value self 'controller-source)  (controller-refcon self)))
+          (slot-value self 'controller-source)      (find-source-endpoint-for-device-named      (controller-device-name self)))))
 
 
 (defgeneric controller-refcon-p (application refcon)
-  (:method ((self convert-cc-dw8000-application) refcon)
+  (:method ((self convert-cc-dw-8000-application) refcon)
     (= refcon (controller-refcon self))))
 
 (defgeneric dw-8000-refcon-p (application refcon)
-  (:method ((self convert-cc-dw8000-application) refcon)
+  (:method ((self convert-cc-dw-8000-application) refcon)
     (= refcon (dw-8000-refcon self))))
 
 (defgeneric map-controller-to-sysex-request (application controller value)
-  (:method ((self convert-cc-dw8000-application) controller value)
+  (:method ((self convert-cc-dw-8000-application) controller value)
     (let ((map (cc-map self))
           (*midi-application* self))
       (dispatch map controller value))))
@@ -515,7 +534,7 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
                                      :name dw-8000-device-name
                                      :channel dw-8000-channel))
          (application
-           (create-midi-application 'convert-cc-dw8000-application
+           (create-midi-application 'convert-cc-dw-8000-application
                                     "Transform CC -> DW-8000 Parameter"
                                     'client-notify 'midi-port-read
                                     :dw-8000-device-name dw-8000-device-name
