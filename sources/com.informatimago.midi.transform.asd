@@ -56,7 +56,7 @@
                                                             "parameter-map-compiler"))
                (:file "korg-dss-1"             :depends-on ("synthesizer"
                                                             "korg"))
-               (:file "convert-cc-dw8000"      :depends-on ("midi-application"
+               (:file "convert-cc-dw-8000"     :depends-on ("midi-application"
                                                             "parameter-map-compiler"
                                                             "korg-dw-8000"
                                                             "korg-dss-1")))
