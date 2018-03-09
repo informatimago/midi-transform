@@ -9,3 +9,8 @@
 
 # binaries:
 midi-transform
+
+# dependencies
+dependencies/CoreMIDI/
+dependencies/com-informatimago/
+dependencies/midi/
