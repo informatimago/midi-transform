@@ -504,7 +504,7 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
      parameters)))
 
 
-(defmethod print-configuration ((application convert-cc-dw8000-application))
+(defmethod print-configuration ((application convert-cc-dw-8000-application))
   (format t "~2%")
   (format t "Application ~A:~%" (class-name (class-of application)))
   (format t "~A ~A channel ~A:~%    src: ~A~%    dst: ~A~%    refcon ~A~%"
