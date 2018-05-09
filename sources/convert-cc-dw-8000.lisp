@@ -57,6 +57,7 @@
   (:nicknames "CCDW" "CCEX")
   (:use "COMMON-LISP"
         "MIDI"
+        "TRIVIAL-MAIN-THREAD"
         "COM.INFORMATIMAGO.COMMON-LISP.CESARUM.UTILITY"
         "COM.INFORMATIMAGO.COMMON-LISP.INTERACTIVE.INTERACTIVE"
         "COM.INFORMATIMAGO.MACOSX.COREMIDI"
@@ -67,10 +68,11 @@
         "COM.INFORMATIMAGO.MIDI.KORG.DW-8000")
   (:shadowing-import-from "COREMIDI" "DEVICE-ID")
   (:shadow "INITIALIZE")
-  (:export "INITIALIZE" "RUN" "PRINT-MIDI-DEVICES"))
+  (:export "INITIALIZE" "RUN" "PRINT-MIDI-DEVICES" "MAIN"))
 (in-package "COM.INFORMATIMAGO.MIDI.TRANSFORM")
 
 (defvar *rc-filename* ".midi-transform.lisp")
+(defvar *version* "1.1.0")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -89,8 +91,8 @@
             (handler-bind
                 ((error (lambda (err)
                           (terpri *error-output*)
-                          (print-backtrace)
-                          (format t "~&EE: effect ~A error: ~A~%" effect err)
+                          (print-backtrace *error-output*)
+                          (format *error-output* "~&EE: effect ~A error: ~A~%" effect err)
                           (setf *effects* (delete effect *effects*))
                           (return-from effect))))
               (apply effect arguments))))
@@ -98,15 +100,15 @@
   *effects*)
 
 
-(defvar *midi-log* *trace-output*)
+(defvar *midi-log* *error-output*)
 (defvar *midi-application* nil)
 (defvar *midi-verbose* nil)
 
 (defun client-notify (message)
-  (format *midi-log* "MM: ~A~%" message)
+  (format *midi-log* "CN: ~A~%" message)
   (force-output *midi-log*))
 
-
+(defvar *bad-source-connection-refcon* '())
 (defun midi-port-read (packet-list source-connection-refcon)
   (handler-bind
       ((error (lambda (err)
@@ -119,9 +121,18 @@
                 (return-from midi-port-read))))
 
     (let ((*standard-output* *midi-log*)
-          (source-connection-refcon (cffi:pointer-address source-connection-refcon))
+          ;; (source-connection-refcon (cffi:pointer-address source-connection-refcon))
           (output-list '()))
+
+      ;; (format *error-output* "PR: source-connection-refcon = ~S ~A ~A~%"
+      ;;         source-connection-refcon
+      ;;         (dw-8000-refcon-p *midi-application* source-connection-refcon)
+      ;;         (controller-refcon-p *midi-application* source-connection-refcon))
+      ;; (finish-output *error-output*)
+
       (cond
+        ((null *midi-application*) #| not initialized yet|#)
+
         ((dw-8000-refcon-p *midi-application* source-connection-refcon)
 
          (let ((message-list (packet-list-to-messages packet-list)))
@@ -166,13 +177,20 @@
                              (dw-8000-channel *midi-application*))
                     (setf (message-channel message) (dw-8000-channel *midi-application*)))
                   (push message output-list)))))))
+
         (t
-         (format t "~&RR: ~A: unexpected refcon.~%" source-connection-refcon)))
+         (unless (member source-connection-refcon *bad-source-connection-refcon*)
+           (push source-connection-refcon *bad-source-connection-refcon*)
+           (format *error-output* "~&RR: ~A: unexpected refcon.~%" source-connection-refcon))))
+
       (when output-list
+        (when *midi-verbose*
+          (format t "~&RO: output-list ~S~%" output-list))
         (send (midi-output-port *midi-application*)
               (dw-8000-destination *midi-application*)
               (packet-list-from-messages (nreverse output-list))))
-      (force-output))))
+      (when *midi-verbose*
+        (force-output)))))
 
 
 
@@ -228,13 +246,13 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
                                  (function entity-sources)
                                  (function entity-destinations))))
       (with-functions (entity-endpoints)
-        (first (mapcan (lambda (x)
-                         (mapcan (lambda (device)
-                                   (let ((endpoints (find external-device (entity-endpoints device)
+        (first (mapcan (lambda (device)
+                         (mapcan (lambda (entity)
+                                   (let ((endpoints (find external-device (entity-endpoints entity)
                                                           :key (function connected-devices)
                                                           :test (function member))))
                                      (when endpoints (list endpoints))))
-                                 (device-entities x)))
+                                 (device-entities device)))
                        (delete-duplicates
                         (mapcan (lambda (x)
                                   (mapcan (function connected-devices)
@@ -300,6 +318,30 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
    (synthesizer            :reader synthesizer            :initarg :synthesizer)))
 
 
+(defmethod midi-initialize ((application convert-cc-dw-8000-application))
+  (call-next-method)
+  (let ((synthesizer (synthesizer application)))
+    (with-slots (input-port output-port
+                 dw-8000-destination dw-8000-source
+                 controller-destination controller-source
+                 dw-8000-device-name controller-device-name
+                 dw-8000-refcon controller-refcon) application
+      (setf dw-8000-destination    (find-destination-endpoint-for-device-named dw-8000-device-name)
+            dw-8000-source         (find-source-endpoint-for-device-named      dw-8000-device-name)
+            controller-destination (find-destination-endpoint-for-device-named controller-device-name)
+            controller-source      (find-source-endpoint-for-device-named      controller-device-name)
+            (synthesizer-destination synthesizer)     dw-8000-destination
+            (synthesizer-source      synthesizer)     dw-8000-source)
+
+      (port-connect-source input-port dw-8000-source dw-8000-refcon)
+      (port-connect-source input-port controller-source controller-refcon)
+      #-(and) (progn
+                (format *midi-log* "controller source       = ~60A (~A)~%" controller-source      controller-device-name)
+                (format *midi-log* "controller destination  = ~60A (~A)~%" controller-destination controller-device-name)
+                (format *midi-log* "device     source       = ~60A (~A)~%" dw-8000-source         dw-8000-device-name)
+                (format *midi-log* "device     destination  = ~60A (~A)~%" dw-8000-destination    dw-8000-device-name))
+      application)))
+
 (defgeneric (setf controller-state) (new-state application controller)
   (:method (new-state (application convert-cc-dw-8000-application) controller)
     (check-type controller (integer 0 127))
@@ -311,25 +353,13 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
                                                         :controller controller
                                                         :value (if new-state 127 0)))))))
 
-
-
-(defmethod initialize-instance :after ((self convert-cc-dw-8000-application) &key &allow-other-keys)
-  (let ((synthesizer (synthesizer self)))
-    (setf (slot-value self 'dw-8000-destination)    (find-destination-endpoint-for-device-named (dw-8000-device-name self))
-          (slot-value self 'dw-8000-source)         (find-source-endpoint-for-device-named      (dw-8000-device-name self))
-          (synthesizer-destination synthesizer)     (slot-value self 'dw-8000-destination)
-          (synthesizer-source      synthesizer)     (slot-value self 'dw-8000-source)
-          (slot-value self 'controller-destination) (find-destination-endpoint-for-device-named (controller-device-name self))
-          (slot-value self 'controller-source)      (find-source-endpoint-for-device-named      (controller-device-name self)))))
-
-
 (defgeneric controller-refcon-p (application refcon)
   (:method ((self convert-cc-dw-8000-application) refcon)
-    (= refcon (controller-refcon self))))
+    (eql refcon (controller-refcon self))))
 
 (defgeneric dw-8000-refcon-p (application refcon)
   (:method ((self convert-cc-dw-8000-application) refcon)
-    (= refcon (dw-8000-refcon self))))
+    (eql refcon (dw-8000-refcon self))))
 
 (defgeneric map-controller-to-sysex-request (application controller value)
   (:method ((self convert-cc-dw-8000-application) controller value)
@@ -504,43 +534,25 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
      parameters)))
 
 
+(defun configure (midi-application controller value)
+  (declare (ignore midi-application controller value))
+  (warn "~S not implemented yet." 'configure))
 
-(defun run (&key
-              (dw-8000-device-name "Korg DW-8000")
-              (dw-8000-channel 10)
-              (controller-device-name "VI61")
-              (controller-channel 10))
-  (setf *midi-log* *terminal-io*)
-  (let* ((synthesizer (make-instance 'dw-8000-synthesizer
-                                     :name dw-8000-device-name
-                                     :channel dw-8000-channel))
-         (application
-           (create-midi-application 'convert-cc-dw-8000-application
-                                    "Transform CC -> DW-8000 Parameter"
-                                    'client-notify 'midi-port-read
-                                    :dw-8000-device-name dw-8000-device-name
-                                    :dw-8000-channel dw-8000-channel
-                                    :controller-device-name controller-device-name
-                                    :controller-channel controller-channel
-                                    :synthesizer synthesizer
-                                    :cc-map (default-map-cc synthesizer))))
-    (push (lambda (selector message source-connection-refcon)
-            (declare (ignore source-connection-refcon))
-            (block effect
-              (when (and (eq :message selector)
-                         (typep message 'midi:system-exclusive-message))
-                (handler-bind
-                    ((error (lambda (err)
-                              (terpri *error-output*)
-                              (print-backtrace)
-                              (format t "~&EE: ~A~%" err)
-                              (return-from effect))))
-                  (receive-sysex-message synthesizer message)))))
-          *effects*)
-    (unwind-protect
-         (progn
-           (setf *midi-application* application)
-           (loop
+
+
+;; Two threads:
+
+;; 1- a REPL thread, using the terminal.
+
+(define-symbol-macro quit          (repl-exit))
+(define-symbol-macro cl-user::quit (repl-exit))
+
+(defun convert-repl ()
+  (#-ccl progn #+ccl objc:with-autorelease-pool
+   #+ (and) (progn
+              (format t "~&Use quit to exit.~%")
+              (repl))
+   #-(and) (loop
              :for command := (string-trim " "
                                           (progn (format t "> ")
                                                  (finish-output)
@@ -554,10 +566,83 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
                               ("" "otherwise, evaluate lisp expressions."))))
                    (t
                     (rep :line command)))
-             :until (string-equal command "quit")))
+             :until (string-equal command "quit"))))
+
+(defvar *repl-done* nil)
+(defun run-repl-thread ()
+  (bt:make-thread (lambda ()
+                    (setf *repl-done* nil)
+                    (unwind-protect
+                         (convert-repl)
+                      (setf *repl-done* t)))
+                  :name "convert-repl"
+                  :initial-bindings `((*standard-input*  . ,*standard-input*)
+                                      (*standard-output* . ,*standard-output*)
+                                      (*terminal-io*     . ,*terminal-io*))))
+
+
+
+;; 2- the main thread, running an event loop to process midi events.
+
+(defun run-loop-process-midi-events ()
+  #+ccl (objc:with-autorelease-pool
+          (#_CFRunLoopRunInMode #$kCFRunLoopDefaultMode 0.1d0 1)
+          #-(and) (list #$kCFRunLoopRunFinished
+                        #$kCFRunLoopRunStopped
+                        #$kCFRunLoopRunTimedOut
+                        #$kCFRunLoopRunHandledSource)))
+
+(defun run-main-event-loop ()
+  (loop
+    :do #+swank (with-body-in-main-thread (:blocking t)
+                  (run-loop-process-midi-events))
+        #-swank (run-loop-process-midi-events)
+    :until *repl-done*))
+
+
+;; The main function.
+
+(defun run (&key
+              (dw-8000-device-name "Korg DW-8000")
+              (dw-8000-channel 10)
+              (controller-device-name "VI61")
+              (controller-channel 10))
+  (initialize)
+  (let* ((synthesizer (make-instance 'dw-8000-synthesizer
+                                     :name dw-8000-device-name
+                                     :channel dw-8000-channel))
+         (application (create-midi-application
+                       'convert-cc-dw-8000-application
+                       "Transform CC -- DW-8000 Parameter"
+                       'client-notify 'midi-port-read
+                       :dw-8000-device-name dw-8000-device-name
+                       :dw-8000-channel dw-8000-channel
+                       :controller-device-name controller-device-name
+                       :controller-channel controller-channel
+                       :synthesizer synthesizer
+                       :cc-map (default-map-cc synthesizer))))
+    (push (lambda (selector message source-connection-refcon)
+            (declare (ignorable source-connection-refcon))
+            (block effect
+              (when (and (eq :message selector)
+                         (typep message 'midi:system-exclusive-message))
+                (handler-bind
+                    ((error (lambda (err)
+                              (finish-output)
+                              (terpri *error-output*)
+                              (print-backtrace)
+                              (format *error-output* "~&EE: ~A~%" err)
+                              (finish-output *error-output*)
+                              (return-from effect))))
+                  (receive-sysex-message synthesizer message)))))
+          *effects*)
+    (unwind-protect
+         (progn
+           (setf *midi-application* application)
+           (run-repl-thread)
+           (run-main-event-loop))
       (terminate *midi-application*)
       (setf *midi-application* nil))))
-
 
 (defun load-rc-file ()
   (with-open-file (rc (merge-pathnames *rc-filename* (user-homedir-pathname))
@@ -565,15 +650,128 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
     (when rc
       (handler-case (load rc)
         (error (err)
+          (finish-output)
           (terpri *error-output*)
           (print-backtrace)
           (format *error-output* "~%ERROR: ~A~%" err)
-          (finish-output))))))
+          (finish-output *error-output*))))))
 
-
+(defvar *initialized* nil)
 (defun initialize ()
-  (com.informatimago.common-lisp.interactive.interactive:initialize)
-  (coremidi-framework)
-  (load-rc-file))
+  #-(and) (trace midi-initialize
+                 midi-port-read
+                 client-create
+                 output-port-create
+                 input-port-create
+                 port-connect-source
+                 find-destination-endpoint-for-device-named
+                 find-source-endpoint-for-device-named)
+  (unless *initialized*
+    (#-ccl progn #+ccl objc:with-autorelease-pool
+     (com.informatimago.common-lisp.interactive.interactive:initialize)
+     (coreaudio-framework)
+     (coremidi-framework)
+     (coremidi:restart)
+     (load-rc-file))
+    (setf *initialized* t)))
+
+
+;;----------------------------------------------------------------------
+;; main
+;;----------------------------------------------------------------------
+
+(defun check-bounds (val min max title)
+  (assert (<= min val max)
+          (val) "~A should be between ~A and ~A"
+          title min max)
+  val)
+
+(defun parse-arguments (arguments)
+  (loop
+    :with result := '()
+    :while arguments
+    :for arg := (pop arguments)
+    :do (cond
+          ((member arg '("-h" "--help") :test (function string=))
+           (setf result (list* :help t result)))
+          ((member arg '("-V" "--version") :test (function string=))
+           (setf result (list* :version t result)))
+          ((member arg '("-v" "--verbose") :test (function string=))
+           (setf result (list* :verbose t result)))
+          ((member arg '("-l" "--list-devices") :test (function string=))
+           (setf result (list* :list-devices t result)))
+          ((member arg '("-dd" "--dw-8000-device-name"
+                         "-ed" "--ex-8000-device-name") :test (function string=))
+           (let ((value (if arguments
+                            (pop arguments)
+                            (error "Missing a DW-8000/EX-8000 MIDI device name after ~S" arg))))
+             (setf result (list* :dw-8000-device-name value result))))
+          ((member arg '("-dc" "--dw-8000-channel"
+                         "-ec" "--ex-8000-channel") :test (function string=))
+           (let ((value (if arguments
+                            (1- (check-bounds (parse-integer (pop arguments)) 1 16 "MIDI Channel"))
+                            (error "Missing a MIDI controller device name after ~S" arg))))
+             (setf result (list* :dw-8000-channel value result))))
+          ((member arg '("-cd" "--controller-device-name") :test (function string=))
+           (let ((value (if arguments
+                            (pop arguments)
+                            (error "Missing a MIDI controller device name after ~S" arg))))
+             (setf result (list* :controller-device-name value result))))
+          ((member arg '("-cc" "--controller-channel") :test (function string=))
+           (let ((value (if arguments
+                            (1- (check-bounds (parse-integer (pop arguments)) 1 16 "MIDI Channel"))
+                            (error "Missing a MIDI controller device name after ~S" arg))))
+             (setf result (list* :controller-channel value result))))
+          ((member arg '("--print-backtrace-on-error") :test (function string=))
+           (setf result (list* :print-backtrace-on-error t result))))
+    :finally (return result)))
+
+(defun print-help (pname)
+  (format t "~2%~A usage:" pname)
+  (format t "~2%    ~A [-h|--help] [-V|--version] [-l|--list-devices]" pname)
+  (format t " \\~%    ~VA [-dd|--dw-8000-device-name|-ed|--ex-8000-device-name  name]" (length pname) "")
+  (format t " \\~%    ~VA [-dc|--dw-8000-channel|-ec|--ex-8000-channel  midi-channel]" (length pname) "")
+  (format t " \\~%    ~VA [-cd|--controller-device-name  name]"                        (length pname) "")
+  (format t " \\~%    ~VA [-cc|--controller-channel  midi-channel]"                    (length pname) "")
+  (format t " \\~%    ~VA [-v|--verbose] [--print-backtrace-on-error]"                 (length pname) "")
+  (format t "~2%  names can be found with --list-devices,")
+  (format t "~%  midi-channel go from 1 to 16.")
+  (format t "~%  Defaults are: -dd \"Korg DW-8000\" -dc 11 -cd \"VI61\" -cc 11")
+  (format t "~2%")
+  (finish-output))
+
+(defun print-version (pname)
+  (format t "~A version: ~A~%" pname *version*))
+
+(defun main (program-path arguments)
+  (let ((print-backtrace-on-error nil))
+    (handler-bind
+        ((error (lambda (condition)
+                  (finish-output *standard-output*)
+                  (when print-backtrace-on-error
+                    (terpri *error-output*)
+                    (print-backtrace *error-output*))
+                  (format *error-output* "~%ERROR: ~A~%" condition)
+                  (finish-output *error-output*)
+                  (ccl:quit 1))))
+      (let ((options (parse-arguments arguments))
+            (pname   (file-namestring program-path)))
+        (setf print-backtrace-on-error (getf options :print-backtrace-on-error))
+        (setf *midi-verbose*           (getf options :verbose))
+        (cond
+          ((getf options :help)
+           (print-help pname))
+          ((getf options :version)
+           (print-version pname))
+          ((getf options :list-devices)
+           (initialize)
+           (print-midi-devices))
+          (t
+           (initialize)
+           (run :controller-device-name (getf options :controller-device-name "VI61")
+                :controller-channel     (getf options :controller-channel     10)
+                :dw-8000-device-name    (getf options :dw-8000-device-name    "Korg DW-8000")
+                :dw-8000-channel        (getf options :dw-8000-channel        10)))))))
+  0)
 
 ;;;; THE END ;;;;

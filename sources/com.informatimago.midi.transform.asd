@@ -42,6 +42,7 @@
   :depends-on ("cffi"
                "midi"
                "trivial-timers"
+               "trivial-main-thread"
                "com.informatimago.macosx.coremidi"
                "com.informatimago.macosx.coremidi.midi"
                "com.informatimago.common-lisp.cesarum"

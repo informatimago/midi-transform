@@ -37,38 +37,51 @@
         "MIDI"
         "COM.INFORMATIMAGO.MACOSX.COREMIDI"
         "COM.INFORMATIMAGO.MACOSX.COREMIDI.MIDI")
-  (:export "*MIDI-APPLICATION*"
-           "MIDI-APPLICATION"
-           "MIDI-CLIENT"
-           "MIDI-INPUT-PORT"
-           "MIDI-OUTPUT-PORT"
-           "MIDI-SOURCES"
-           "CREATE-MIDI-APPLICATION"
-           "TERMINATE"
-           "CONNECT-SOURCE"))
+  (:export "*MIDI-APPLICATION*" "CONNECT-SOURCE"
+           "CREATE-MIDI-APPLICATION" "MIDI-APPLICATION"
+           "MIDI-APPLICATION" "MIDI-CLIENT" "MIDI-CLIENT"
+           "MIDI-CLIENT-NAME" "MIDI-CLIENT-NOTIFY-FUNCTION"
+           "MIDI-INITIALIZE" "MIDI-INPUT-PORT" "MIDI-INPUT-PORT"
+           "MIDI-OUTPUT-PORT" "MIDI-OUTPUT-PORT"
+           "MIDI-PORT-READ-FUNCTION" "MIDI-SOURCES" "MIDI-SOURCES"
+           "TERMINATE")
+  (:export "CLIENT" "INPUT-PORT" "OUTPUT-PORT" "SOURCES"
+           "CLIENT-NAME" "CLIENT-NOTIFY-FUNCTION" "PORT-READ-FUNCTION"))
 (in-package "COM.INFORMATIMAGO.MIDI.ABSTRACT-MIDI-APPLICATION")
 
 (defclass midi-application ()
-  ((client      :initarg :client      :accessor midi-client)
-   (input-port  :initarg :input-port  :accessor midi-input-port)
-   (output-port :initarg :output-port :accessor midi-output-port)
-   (sources     :initform '()         :accessor midi-sources
-                :documentation "Sources connected to our input-port.")))
+  ((client      :reader midi-client)
+   (input-port  :reader midi-input-port)
+   (output-port :reader midi-output-port)
+   (sources     :accessor midi-sources
+                :initform '()
+                :documentation "Sources connected to our input-port.")
+   (client-name            :initarg :client-name            :reader midi-client-name)
+   (client-notify-function :initarg :client-notify-function :reader midi-client-notify-function)
+   (port-read-function     :initarg :port-read-function     :reader midi-port-read-function)))
 
 (defgeneric synthesizer (application))
 
-(defvar *midi-application* nil
-   "The current MIDI-APPLICATION instance.")
+(defgeneric midi-initialize (application)
+  (:method ((application midi-application))
+    (with-slots (client input-port output-port
+                 client-name client-notify-function port-read-function) application
+      (setf client (client-create client-name client-notify-function)
+            output-port (output-port-create client (format nil "~A Out" client-name))
+            input-port  (input-port-create  client (format nil "~A In"  client-name)
+                                            port-read-function))
+      application)))
 
 (defun create-midi-application (class-name client-name client-notify-function port-read-function
                                 &rest arguments &key &allow-other-keys)
-  (let ((client (client-create client-name client-notify-function)))
-    (apply (function make-instance) class-name
-           :client client
-           :output-port (output-port-create client (format nil "~A Out" client-name))
-           :input-port  (input-port-create  client (format nil "~A In"  client-name)
-                                            port-read-function)
-           arguments)))
+
+  (let ((application (apply (function make-instance) class-name
+                            :client-name client-name
+                            :client-notify-function client-notify-function
+                            :port-read-function port-read-function
+                            arguments)))
+    (midi-initialize application)
+    application))
 
 (defgeneric terminate (application)
   (:method ((self midi-application))
@@ -86,5 +99,7 @@
     (port-connect-source (midi-input-port self) source (cffi:make-pointer refcon))
     source))
 
+(defvar *midi-application* nil
+  "The current MIDI-APPLICATION instance.")
 
 ;;;; THE END ;;;;

@@ -37,6 +37,11 @@
 (eval-when (:compile-toplevel :load-toplevel)
   (error "This file should be loaded as source, not compiled"))
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (mapc (lambda (package) (unuse-package package "COMMON-LISP-USER"))
+        (remove  (find-package "COMMON-LISP")  (copy-seq (package-use-list "COMMON-LISP-USER"))))
+  (unintern 'quit))
+
 ;;; --------------------------------------------------------------------
 
 (defun say (fmt &rest args)
@@ -57,101 +62,34 @@
 
 ;;; --------------------------------------------------------------------
 
-(say "Load loader.")
+(say "Loading loader.")
 (load (local-file "loader"))
 
 ;;; --------------------------------------------------------------------
 
-(defun check-bounds (val min max title)
-  (assert (<= min val max)
-          (val) "~A should be between ~A and ~A"
-          title min max)
-  val)
-
-(defun parse-arguments (arguments)
-  (loop
-    :with result := '()
-    :while arguments
-    :for arg := (pop arguments)
-    :do (cond
-          ((member arg '("-h" "--help") :test (function string=))
-           (setf result (list* :help t result)))
-          ((member arg '("-l" "--list-devices") :test (function string=))
-           (setf result (list* :list-devices t result)))
-          ((member arg '("-dd" "--dw-8000-device-name"
-                         "-ed" "--ex-8000-device-name") :test (function string=))
-           (let ((value (if arguments
-                            (pop arguments)
-                            (error "Missing a DW-8000/EX-8000 MIDI device name after ~S" arg))))
-             (setf result (list* :dw-8000-device-name value result))))
-          ((member arg '("-dc" "--dw-8000-channel"
-                         "-ec" "--ex-8000-channel") :test (function string=))
-           (let ((value (if arguments
-                            (1- (check-bounds (parse-integer (pop arguments)) 1 16 "MIDI Channel"))
-                            (error "Missing a MIDI controller device name after ~S" arg))))
-             (setf result (list* :dw-8000-channel value result))))
-          ((member arg '("-cd" "--controller-device-name") :test (function string=))
-           (let ((value (if arguments
-                            (pop arguments)
-                            (error "Missing a MIDI controller device name after ~S" arg))))
-             (setf result (list* :controller-device-name value result))))
-          ((member arg '("-cc" "--controller-channel") :test (function string=))
-           (let ((value (if arguments
-                            (1- (check-bounds (parse-integer (pop arguments)) 1 16 "MIDI Channel"))
-                            (error "Missing a MIDI controller device name after ~S" arg))))
-             (setf result (list* :controller-channel value result))))
-          ((member arg '("--print-backtrace-on-error") :test (function string=))
-           (setf result (list* :print-backtrace-on-error t result))))
-    :finally (return result)))
-
-(defun print-help (pname)
-  (format t "~2%~A usage:" pname)
-  (format t "~2%    ~A [-h|--help] [-l|--list-devices]" pname)
-  (format t " \\~%    ~VA [-dd|--dw-8000-device-name|-ed|--ex-8000-device-name  name]" (length pname) "")
-  (format t " \\~%    ~VA [-dc|--dw-8000-channel|-ec|--ex-8000-channel  midi-channel]" (length pname) "")
-  (format t " \\~%    ~VA [-cd|--controller-device-name  name]"                        (length pname) "")
-  (format t " \\~%    ~VA [-cc|--controller-channel  midi-channel]"                    (length pname) "")
-  (format t "~2%  names can be found with --list-devices,")
-  (format t "~%  midi-channel go from 1 to 16.")
-  (format t "~%  Defaults are: -dd \"Korg DW-8000\" -dc 11 -cd \"VI61\" -cc 11")
-  (format t "~2%")
-  (finish-output))
-
-
-(defun main ()
-  (let ((print-backtrace-on-error nil))
-    (handler-bind
-        ((error (lambda (condition)
-                  (when print-backtrace-on-error
-                    (terpri *error-output*)
-                    (com.informatimago.midi.transform::print-backtrace *error-output*))
-                  (format *error-output* "~%ERROR: ~A~%" condition)
-                  (ccl:quit 1))))
-      (let ((options (parse-arguments #+ccl (rest (ccl::command-line-arguments)))))
-        (setf print-backtrace-on-error (getf options :print-backtrace-on-error))
-        (cond
-          ((getf options :list-devices)
-           (com.informatimago.midi.transform:initialize)
-           (com.informatimago.midi.transform:print-midi-devices))
-          ((getf options :help)
-           (print-help (file-namestring (first (ccl::command-line-arguments)))))
-          (t
-           (com.informatimago.midi.transform:initialize)
-           (com.informatimago.midi.transform:run
-            :dw-8000-device-name    (getf options :dw-8000-device-name    "Korg DW-8000")
-            :dw-8000-channel        (getf options :dw-8000-channel        10)
-            :controller-device-name (getf options :controller-device-name "VI61")
-            :controller-channel     (getf options :controller-channel     10)))))))
-  (ccl:quit 0))
-
-#+ccl (ccl:save-application "midi-transform"
-                            :toplevel-function (function main)
-                            :init-file nil
-                            :error-handler :quit
-                            :application-class nil
-                            :clear-clos-caches nil
-                            :purify t
-                            :mode #o755
-                            :prepend-kernel t)
+#+ccl (ccl:save-application
+       "midi-transform"
+       :toplevel-function (lambda ()
+                            (handler-bind
+                                ((error (lambda (condition)
+                                          (finish-output *standard-output*)
+                                          (terpri *error-output*)
+                                          (com.informatimago.midi.transform::print-backtrace *error-output*)
+                                          (format *error-output* "~%ERROR: ~A~%" condition)
+                                          (finish-output *error-output*)
+                                          (ccl:quit 1))))
+                              (let ((result (com.informatimago.midi.transform:main
+                                             (first (ccl::command-line-arguments))
+                                             (rest  (ccl::command-line-arguments)))))
+                                (if (typep result '(integer 0 255))
+                                    (ccl:quit result)
+                                    (ccl:quit 0)))))
+       :init-file nil
+       :error-handler :quit
+       :application-class nil
+       :clear-clos-caches nil
+       :purify t
+       :mode #o755
+       :prepend-kernel t)
 
 ;;;; THE END ;;;;

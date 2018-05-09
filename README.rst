@@ -275,4 +275,13 @@ It's distribued under the GNU AFFERO GENERAL PUBLIC LICENSE, Version 3.
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+.. comment:
+
+       ./midi-transform  -cd VMini -cc 9 -dd 'Korg MS2000R' -dc 14
+       (com.informatimago.midi.transform:run
+           :controller-device-name "VMini"
+           :controller-channel 9
+           :dw-8000-device-name "Korg MS2000R"
+           :dw-8000-channel 14)
+
 .. comment: THE END.

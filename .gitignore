@@ -6,6 +6,7 @@
 .DS_Store
 ._.DS_Store
 *.bak
+*.xcuserdatad
 
 # binaries:
 midi-transform

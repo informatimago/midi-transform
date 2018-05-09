@@ -76,7 +76,35 @@
                     *source-directory*))
   (pushnew (truename path) asdf:*central-registry* :test (function equalp)))
 
+(require "OBJC-SUPPORT")
 (ql:quickload :com.informatimago.midi.transform)
+(load "cffi-utils")
+
+(in-package "COMMON-LISP-USER")
+
+(defun foreign-raw-string-to-lisp (pointer)
+  "Copy at most COUNT bytes from POINTER plus OFFSET encoded in
+ENCODING into a Lisp string and return it.  If POINTER is a null
+pointer, NIL is returned."
+  (unless (cffi:null-pointer-p pointer)
+    (com.informatimago.cffi-utils:foreign-null-terminated-vector pointer :uchar 'character #'code-char)))
+
+
+(defun vmini->schmidt ()
+  (com.informatimago.midi.transform:run
+   :controller-device-name "VMini"
+   :controller-channel 8
+   :dw-8000-device-name "SCHMIDT SYNTH"
+   :dw-8000-channel 7))
+
+(defun vmini->ms2000r ()
+  (com.informatimago.midi.transform:run
+   :controller-device-name "VMini"
+   :controller-channel 8
+   :dw-8000-device-name "Korg MS2000R"
+   :dw-8000-channel 14))
 
 (print '(com.informatimago.midi.transform:run))
+(print '(vmini->schmidt))
+(print '(vmini->ms2000r))
 ;;;; THE END ;;;;
