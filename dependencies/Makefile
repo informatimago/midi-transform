@@ -9,3 +9,6 @@ update:all
 	cd CoreMidi          ; git pull
 	cd com-informatimago ; git pull
 	cd midi              ; git pull
+help:
+	@printf '%s %30s # %s\n' make all     'Fetches (clone) all dependencies.'
+	@printf '%s %30s # %s\n' make update  'Updates (pull)  all dependencies.'
