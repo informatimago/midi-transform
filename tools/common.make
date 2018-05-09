@@ -71,7 +71,7 @@ clean-pdf clean-pdfs:
 	-rm -f $(PDFS)
 
 
-.PHONY::  checkout-pdf checkout-pdfs 
+.PHONY::  checkout-pdf checkout-pdfs
 checkout-pdf checkout-pdfs:clean-pdf
 	git checkout $(PDFS)
 
@@ -104,7 +104,7 @@ u-%.png:u-%.yuml
 ## Example, using rstpre and rstuml:
 ##
 # .SUFFIXES: .in1 .txt .rst .pdf .xml .odt .html
-# 
+#
 # # All the preprocessing of the documents into a rst file should go here:
 # %.rst:%.txt
 # 	@i="$<" ; d=$$(dirname "$$i") ; f=$$(basename "$$i") ;\
@@ -114,25 +114,24 @@ u-%.png:u-%.yuml
 # 	&& mv "$${f/.txt/.rst}"  "$${f/.txt/.in1}" \
 # 	&& echo "Processing UML in $${i/.txt/.in1}" \
 # 	&& $(RSTUML) "$${f/.txt/.in1}"
-# 
+#
 # # Following are the rules to process rst files into the target formats:
 # %.pdf:%.rst
 # 	@i="$<" ; d=$$(dirname "$$i") ; f=$$(basename "$$i") ;\
 # 	echo "Producing $${i/.rst/.pdf}" ;\
 # 	cd "$$d" \
-# 	&& $(RST2PDF)  $$( [ -r $${f/.rst/.style} ] && echo -s $${f/.rst/.style} )  -o "$${f/.rst/.pdf}"  "$$f" 
+# 	&& $(RST2PDF)  $$( [ -r $${f/.rst/.style} ] && echo -s $${f/.rst/.style} )  -o "$${f/.rst/.pdf}"  "$$f"
 # # --verbose --very-verbose
-# 
+#
 # %.odt:%.rst
 # 	@i="$<" ; d=$$(dirname "$$i") ; f=$$(basename "$$i") ;\
 # 	echo "Producing $${i/.rst/.odt}" ;\
 # 	cd "$$d" \
 # 	&& $(RST2ODT) $$( [ -r $${f/.rst/.style} ] && echo -s $${f/.rst/.style} ) "$$f" "$${f/.rst/.odt}"
-# 
+#
 # %.html:%.rst
 # 	@i="$<" ; d=$$(dirname "$$i") ; f=$$(basename "$$i") ;\
 # 	echo "Producing $${i/.rst/.html}" ;\
 # 	cd "$$d" \
 # 	@f="$<" \
 # 	&& $(RST2HTML) $$( [ -r $${f/.rst/.style} ] && echo -s $${f/.rst/.style} ) "$$f" "$${f/.rst/.html}"
-
