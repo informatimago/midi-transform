@@ -1,2 +1,7 @@
 #!/bin/bash
-exec rlwrap midi-transform  -cd "VI61" -cc 14 -dd "Korg MS2000R" -dc 14
+case "$TERM" in
+(dumb|emacs) rlwrap=()       ;;
+(*)          rlwrap=(rlwrap) ;;
+esac
+exec "${rlwrap[@]}" \
+     midi-transform  -cd "VI61" -cc 14 -dd "Korg MS2000R" -dc 14
