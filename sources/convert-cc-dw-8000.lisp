@@ -539,7 +539,6 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
   (warn "~S not implemented yet." 'configure))
 
 
-
 ;; Two threads:
 
 ;; 1- a REPL thread, using the terminal.
@@ -601,6 +600,26 @@ is linked to some endpoint of this EXTERNAL-DEVICE."
 
 
 ;; The main function.
+
+(defmethod print-configuration ((application convert-cc-dw-8000-application))
+  (format t "~2%")
+  (format t "Application ~A:~%" (class-name (class-of application)))
+  (format t "~A ~A channel ~A:~%    src: ~A~%    dst: ~A~%    refcon ~A~%"
+          "Controller"
+          (controller-device-name application)
+          (controller-channel application)
+          (name (controller-source application))
+          (name (controller-destination application))
+          (controller-refcon application))
+  (format t "~A ~A channel ~A:~%    src: ~A~%    dst: ~A~%    refcon ~A~%"
+          "Synthesizer"
+          (dw-8000-device-name application)
+          (dw-8000-channel application)
+          (name (dw-8000-source application))
+          (name (dw-8000-destination application))
+          (dw-8000-refcon application))
+  (format t "~2%"))
+
 
 (defun run (&key
               (dw-8000-device-name "Korg DW-8000")
