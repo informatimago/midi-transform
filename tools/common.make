@@ -86,6 +86,9 @@ checkout-pdf checkout-pdfs:clean-pdf
 %.pdf:%.txt
 	rst2pdf -o $@ $<
 
+%.pdf:%.rst
+	rst2pdf -o $@ $<
+
 # Object diagrams = Class diagrams.
 o-%.png:o-%.yuml
 	$(WGET) $(WGET_OPTIONS) "http://yuml.me/diagram/plain/class/$$(tr '\012' ',' < $< |sed -e 's/,*$$//')" -O $@
