@@ -82,6 +82,14 @@ checkout-pdf checkout-pdfs:clean-pdf
 %.d:%.txt
 	$(MAKE_RST_DEPENDS) $< > $@
 
+# Generate PDF from org-mode document.
+%.pdf:%.org
+	-rm -f $@
+	emacs --batch \
+		--eval '(find-file "'$<'")' \
+		--funcall org-latex-export-to-pdf \
+		--kill
+
 # Generate PDF from reStructuredText document.
 %.pdf:%.txt
 	rst2pdf -o $@ $<
