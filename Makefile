@@ -1,8 +1,11 @@
 all::documents
-	for module in $(MODULES) ; do $(MAKE) $(MFLAGS) -C $${module} all ; done
+	for module in $(MODULES) ; do $(MAKE) $(MFLAGS) -C $${module} $@ ; done
+
+install::
+	for module in $(MODULES) ; do $(MAKE) $(MFLAGS) -C $${module} $@ ; done
 
 clean::
-	find . -name \*.dx64fsl -exec rm -f {} \;
+	for module in $(MODULES) ; do $(MAKE) $(MFLAGS) -C $${module} $@ ; done
 
 include tools/common.make
 
@@ -11,3 +14,4 @@ PDFS=README.pdf
 documents::$(PDFS)
 
 README.pdf:README.rst
+
