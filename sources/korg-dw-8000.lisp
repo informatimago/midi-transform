@@ -536,6 +536,21 @@
    (timer              :initform nil :accessor synthesizer-timer)
    (state              :initform nil :accessor synthesizer-state)))
 
+(defun caller ()
+  (loop :with system-packages := (list (find-package "CL") #+ccl (find-package "CCL"))
+        :for frame :in #+ccl (ccl::backtrace-as-list) #-ccl '()
+        :for fun := (first frame)
+        :while (or (member (symbol-package fun) system-packages)
+                   (member fun '(caller)))
+        :finally (return frame)))
+
+(defmethod (setf synthesizer-state) :before (new-state (synthesizer dw-8000-synthesizer))
+  (format *trace-output*
+          "~&Old State = ~S  ---(~A)--->  New State = ~S~%"
+          (synthesizer-state synthesizer)
+          (caller)
+          new-state))
+
 (defmethod initialize-instance :after ((self dw-8000-synthesizer) &key &allow-other-keys)
   (setf (synthesizer-current-program self) (make-instance 'dw-8000-program :name "Default")))
 
@@ -712,7 +727,8 @@
     (if (or (null (synthesizer-timer synthesizer))
             (not (timer-scheduled-p (synthesizer-timer synthesizer))))
         (setf (synthesizer-state synthesizer) nil)
-        (error "Invalid synthesizer state ~A" (synthesizer-state synthesizer)))))
+        (progn (warn "Invalid synthesizer state ~A" (synthesizer-state synthesizer))
+               (setf (synthesizer-state synthesizer) nil)))))
 
 (defmethod send-device-id-request ((synthesizer dw-8000-synthesizer))
   (check-state synthesizer)
