@@ -13,5 +13,4 @@ PDFS=README.pdf
 
 documents::$(PDFS)
 
-README.pdf:README.rst
-
+README.pdf:README.org

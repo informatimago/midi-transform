@@ -1,13 +1,37 @@
-.. comment: -*- mode:rst;coding:utf-8 -*-
+# -*- mode:org;coding:utf-8 -*-
+#+AUTHOR: Pascal J. Bourguignon
+#+EMAIL: pjb@informatimago.com
+#+DATE: May 27th, 2018
+#+TITLE: Midi-Transform README
+#+LANGUAGE: en
 
+* Prologue                                                         :noexport:
 
-midi-transform
-############################################################
+#+OPTIONS: H:5 num:t
 
+#+LATEX_HEADER: \usepackage{placeins}
+#+LATEX_HEADER: \usepackage{fancyhdr}
+#+LATEX_HEADER: \usepackage[english]{babel}
+#+LATEX_HEADER: \usepackage[margin=2cm]{geometry}
+#+LATEX_HEADER: \usepackage{parskip}
+#+LATEX_HEADER: \usepackage{titlesec}
+#+LATEX_HEADER: \setcounter{secnumdepth}{5}
+#+LATEX_HEADER: \pagestyle{fancyplain}
+
+#+LATEX_HEADER: \lhead{\small{License: AGPL3}}
+#+LATEX_HEADER: \chead{}
+#+LATEX_HEADER: \rhead{Midi-Transform README}
+#+LATEX_HEADER: \lfoot{}
+#+LATEX_HEADER: \cfoot{\tiny{Copyright 2017-2019, Pascal J. Bourguignon}}
+#+LATEX_HEADER: \rfoot{\thepage}
+#+LATEX_HEADER: \setcounter{page}{1}
+#+LATEX_HEADER: \pagenumbering{arabic}
+
+* Introduction
 
 This is a little CoreMIDI MacOSX command-line program whose purpose is
 to convert some MIDI controller Controller Change MIDI messages into
-SysEx parameter change MIDI message for some synthesizer.
+SysEx parameter change MIDI messages for some synthesizer.
 Accessorily, it also forwards all the other MIDI messages from the
 controller to the synthesizer.
 
@@ -25,13 +49,9 @@ See also:
 
 - https://www.youtube.com/watch?v=K6nbcbXXn5g
 
+* Features
 
-
-Features
-============================================================
-
-Main Features:
-------------------------------------------------------------
+** Main Features:
 
 - Receives MIDI messages from the controller, and
 
@@ -41,50 +61,17 @@ Main Features:
 - CC messages are transformed into parameter-change sysex (updating
   the channel if needed).
 
-
-Secondary Features (implemented):
-------------------------------------------------------------
+** Secondary Features (implemented)
 
 - pass through mode for knobs (continuous controls).
 
+** Secondary Features (not implemented yet)
 
-Secondary Features (not implemented yet):
-------------------------------------------------------------
+cf. TODO list.
 
-- option for absolute or pass-thru mode for knobs. (absolute is better
-  when creating new sounds, pass-thru is better when patching a sound
-  live).
+* Usage
 
-- configure the CC mapping interactively:
-
-   + select in the user interface a parameter of the target synthesizer.
-
-   + receive a CC message from the controller.
-
-   + establish the mapping between that CC message and the parameter.
-
-- support other target synthesizers (Korg DSS-1 in addition to Korg DW-8000).
-
-- support multiple target synthesizers and multiple controllers.
-
-- load and save programs.
-
-- load and save whole program banks.
-
-- currently bank MSB/LSB are ignored for program changes; they
-  could be taken into account, automatically downloading new
-  banks.
-
-- add some graphical (or ascii art) features such as drawing
-  the envelopes when modifying them…
-
-- port to Linux (eg. Raspberry Pi)
-
-
-Usage
-============================================================
-
-::
+#+BEGIN_EXAMPLE
 
     $ ./midi-transform  --help
 
@@ -101,20 +88,17 @@ Usage
       midi-channel go from 1 to 16.
       Defaults are: -dd "Korg DW-8000" -dc 11 -cd "VI61" -cc 11
 
+#+END_EXAMPLE
 
+** RC File
 
-RC File
-------------------------------------------------------------
-
-When starting up, ``midi-transform`` will read the file
-``.midi-transform.lisp`` in the user ``HOME`` directory, if it exists,
+When starting up, =midi-transform= will read the file
+=.midi-transform.lisp= in the user =HOME= directory, if it exists,
 and evaluate the Common Lisp expressions contained.
 
+** Commands
 
-Commands
-------------------------------------------------------------
-
-While running, ``midi-transform`` prints a prompt ("> "), and reads
+While running, =midi-transform= prints a prompt ("> "), and reads
 commands.  Currently the following commands are recognized:
 
 quit
@@ -125,7 +109,9 @@ help
 
 
 Furthermore, when unrecognized commands are entered, they are
-interpreted as Common Lisp expressions.  Example: ::
+interpreted as Common Lisp expressions.  Example: 
+
+#+BEGIN_EXAMPLE
 
     [pjb@despina :0.0 current-midi-transform]$ ./midi-transform
 
@@ -139,12 +125,11 @@ interpreted as Common Lisp expressions.  Example: ::
      --> T
     >
 
+#+END_EXAMPLE
 
+* Example
 
-Example
-============================================================
-
-::
+#+BEGIN_EXAMPLE
 
     $ ./midi-transform
         Selected group 0
@@ -176,21 +161,26 @@ Example
 
     $
 
+#+END_EXAMPLE
 
-Obtaining the sources
-============================================================
+* Obtaining the sources
 
 1- create a directory where to clone it, since dependencies will be
-cloned in brother directories. ::
+cloned in brother directories. 
 
+#+BEGIN_EXAMPLE
     $ mkdir src ; cd src
+#+END_EXAMPLE
 
-2- clone the sources: ::
+2- clone the sources:
 
+#+BEGIN_EXAMPLE
     $ git clone git@framagit.org:pjb/midi-transform.git
+#+END_EXAMPLE
 
-Running in ccl: ::
+Running in ccl: 
 
+#+BEGIN_EXAMPLE
     > (ccl:chdir "src/midi-transform/")
     > (load "loader")
     > (com.informatimago.midi.transform:initialize)
@@ -199,43 +189,46 @@ Running in ccl: ::
               :dw-8000-channel 10
               :controller-device-name "VI61"
               :controller-channel 10)
+#+END_EXAMPLE
 
 Internally, MIDI channels numbers go from 0 to 15, (they're converted
 while parsing the the command line arguments).  So use 10 to indicate
 MIDI Channel 11, 0 for MIDI Channel 1.  The above values are default
-parameters, so you can run it with just: ::
+parameters, so you can run it with just: 
 
+#+BEGIN_EXAMPLE
     > (com.informatimago.midi.transform:run)
+#+END_EXAMPLE
 
 if you configure your devices on the channel 11 and name them like
 this in the "Audio MIDI Setup" application.
 
+* Compiling the binary program
 
-Compiling the binary program
-============================================================
-
-::
-
+#+BEGIN_EXAMPLE
     $ make help
     $ make
     $ ./midi-transform --help
+#+END_EXAMPLE
 
-The midi-transform program can be installed in ``/usr/local/bin`` with: ::
+The midi-transform program can be installed in =/usr/local/bin= with: 
 
+#+BEGIN_EXAMPLE
     $ make install
+#+END_EXAMPLE
 
-or in some other directory by specifying the ``PREFIX``: ::
+or in some other directory by specifying the =PREFIX=: ::
 
+#+BEGIN_EXAMPLE
     $ make PREFIX=/opt/local install
+#+END_EXAMPLE
 
-will install ``/opt/local/bin/midi-transform``.
+will install =/opt/local/bin/midi-transform=.
 
+* TODO [/] Midi Transform Project                             :miditransform:
+** TODO [#A] EE: 17908960: Invalid synthesizer state EXPECTING-DATA-DUMP :bug:
 
-TODO
-============================================================
-
-::
-
+#+BEGIN_EXAMPLE
     --------------------------------------------------------------------------------
     (BACKTRACE-AS-LIST :CONTEXT NIL :PROCESS NIL :ORIGIN NIL :COUNT 1152921504606846975 :START-FRAME-NUMBER 0 :PRINT-LEVEL 2 :PRINT-LENGTH 5 :SHOW-INTERNAL-FRAMES NIL)
     (PRINT-BACKTRACE #<SYNONYM-STREAM to *TERMINAL-IO* #x30200121BA3D>)
@@ -269,13 +262,48 @@ TODO
         Program change parameter = #<INTERNAL-PARAMETER #x302001314CCD>  value = 32
     RC: (MIDI:PROGRAM-CHANGE-MESSAGE :TIME 500878002295559 :STATUS 200 :CHANNEL 8 :PROGRAM 114)
     RC: #<A Foreign Pointer #x11144E0>: PC 114
+#+END_EXAMPLE
 
+** TODO [#B] option for absolute or pass-thru mode for knobs. 
 
-License
-============================================================
+absolute is better when creating new sounds, pass-thru is better when
+patching a sound live.
+
+** TODO [#B] configure the CC mapping interactively
+
+   + select in the user interface a parameter of the target synthesizer.
+
+   + receive a CC message from the controller.
+
+   + establish the mapping between that CC message and the parameter.
+
+** TODO [#B] support other target synthesizers
+
+Korg DSS-1 in addition to Korg DW-8000.
+
+** TODO [#B] support multiple target synthesizers and multiple controllers.
+
+** TODO [#B] load and save programs.
+
+** TODO [#B] load and save whole program banks.
+
+** TODO [#B] take into account bank MSB/LSB in program changes.
+
+Currently bank MSB/LSB are ignored for program changes; they
+could be taken into account, automatically downloading new
+banks.
+
+** TODO [#C] add some graphical (or ascii art) features 
+
+Such as drawing the envelopes when modifying them…
+
+** TODO [#C] port to Linux
+eg. Raspberry Pi.
+
+* License
 
 It's distribued under the GNU AFFERO GENERAL PUBLIC LICENSE, Version 3.
-
+#+BEGIN_QUOTE
     Copyright Pascal J. Bourguignon 2017 - 2017
 
     This program is free software: you can redistribute it and/or modify
@@ -290,9 +318,11 @@ It's distribued under the GNU AFFERO GENERAL PUBLIC LICENSE, Version 3.
 
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#+END_QUOTE
 
+* Epilogue                                                         :noexport:
 
-.. comment:
+#+BEGIN_EXAMPLE
 
        ./midi-transform  -cd VMini -cc 9 -dd 'Korg MS2000R' -dc 14
        (com.informatimago.midi.transform:run
@@ -301,4 +331,6 @@ It's distribued under the GNU AFFERO GENERAL PUBLIC LICENSE, Version 3.
            :dw-8000-device-name "Korg MS2000R"
            :dw-8000-channel 14)
 
-.. comment: THE END.
+#+END_EXAMPLE
+
+# THE END.
